@@ -4,17 +4,16 @@ import AppShell from "@/components/layout/AppShell";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { getDailySales, getExpenses, getSalaryRecords, getSupplierInvoices, getSalesInvoices, getInventoryCounts } from "@/lib/firestore";
+import { getDailySales, getExpenses, getSalaryRecords, getSupplierInvoices } from "@/lib/firestore";
 import { formatCurrency } from "@/lib/utils";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
 
 interface PLReport {
   month: string;
   shopSales: number;
-  exportSales: number;
   totalRevenue: number;
   purchases: number;
   openingStock: number;
@@ -36,19 +35,11 @@ export default function ReportsPage() {
   const [closingStockValue, setClosingStockValue] = useState(0);
 
   // Expense report state
-  const [expStart, setExpStart] = useState(() => {
-    const d = new Date(); d.setDate(1);
-    return d.toISOString().split("T")[0];
-  });
-  const [expEnd, setExpEnd] = useState(new Date().toISOString().split("T")[0]);
+  const [expMonth, setExpMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [expData, setExpData] = useState<{ category: string; total: number }[]>([]);
 
   // Sales report state
-  const [salesStart, setSalesStart] = useState(() => {
-    const d = new Date(); d.setDate(1);
-    return d.toISOString().split("T")[0];
-  });
-  const [salesEnd, setSalesEnd] = useState(new Date().toISOString().split("T")[0]);
+  const [salesMonth, setSalesMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [salesChartData, setSalesChartData] = useState<{ date: string; مبيعات: number }[]>([]);
 
   async function generatePL() {
@@ -57,22 +48,14 @@ export default function ReportsPage() {
       const startDate = `${month}-01`;
       const endDate = `${month}-31`;
 
-      const [dailySales, exportInvoices, supplierInvoices, expenses, salaryRecs, invCounts] = await Promise.all([
+      const [dailySales, supplierInvoices, expenses, salaryRecs] = await Promise.all([
         getDailySales(startDate, endDate),
-        getSalesInvoices(),
         getSupplierInvoices(),
         getExpenses(startDate, endDate),
         getSalaryRecords(),
-        getInventoryCounts(),
       ]);
 
       const shopSales = (dailySales as Record<string, unknown>[]).reduce((s, d) => s + ((d.totalSales as number) || 0), 0);
-
-      const monthExportInvoices = (exportInvoices as Record<string, unknown>[]).filter((inv) => {
-        const d = inv.date as { toDate: () => Date };
-        return d.toDate().toISOString().slice(0, 7) === month;
-      });
-      const exportSales = monthExportInvoices.reduce((s, inv) => s + ((inv.totalAmount as number) || 0), 0);
 
       const monthPurchases = (supplierInvoices as Record<string, unknown>[]).filter((inv) => {
         const d = inv.date as { toDate: () => Date };
@@ -80,7 +63,7 @@ export default function ReportsPage() {
       });
       const purchases = monthPurchases.reduce((s, inv) => s + ((inv.totalAmount as number) || 0), 0);
 
-      const totalRevenue = shopSales + exportSales;
+      const totalRevenue = shopSales;
 
       // COGS = (Opening Stock + Purchases) - Closing Stock
       const openingStock = openingStockValue;
@@ -100,7 +83,6 @@ export default function ReportsPage() {
       setReport({
         month,
         shopSales,
-        exportSales,
         totalRevenue,
         purchases,
         openingStock,
@@ -121,7 +103,9 @@ export default function ReportsPage() {
   }
 
   async function loadExpenseReport() {
-    const data = await getExpenses(expStart, expEnd);
+    const startDate = expMonth + "-01";
+    const endDate = expMonth + "-31";
+    const data = await getExpenses(startDate, endDate);
     const byCategory: Record<string, number> = {};
     for (const exp of data as Record<string, unknown>[]) {
       const cat = exp.category as string;
@@ -131,18 +115,12 @@ export default function ReportsPage() {
   }
 
   async function loadSalesReport() {
-    const daily = await getDailySales(salesStart, salesEnd);
-    const salesInv = await getSalesInvoices();
+    const startDate = salesMonth + "-01";
+    const endDate = salesMonth + "-31";
+    const daily = await getDailySales(startDate, endDate);
     const byDate: Record<string, number> = {};
     for (const d of daily as Record<string, unknown>[]) {
       byDate[d.date as string] = (byDate[d.date as string] || 0) + ((d.totalSales as number) || 0);
-    }
-    for (const inv of salesInv as Record<string, unknown>[]) {
-      const ts = inv.date as { toDate: () => Date };
-      const dateStr = ts.toDate().toISOString().split("T")[0];
-      if (dateStr >= salesStart && dateStr <= salesEnd) {
-        byDate[dateStr] = (byDate[dateStr] || 0) + ((inv.totalAmount as number) || 0);
-      }
     }
     const sorted = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b));
     setSalesChartData(sorted.map(([date, sales]) => ({ date: date.slice(5), مبيعات: sales })));
@@ -163,7 +141,9 @@ export default function ReportsPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+                tab === t.key
+                  ? "border-yellow-500 text-yellow-600 dark:text-yellow-400 dark:border-yellow-400"
+                  : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -201,7 +181,6 @@ export default function ReportsPage() {
                 <div className="space-y-1">
                   <Section title="الإيرادات" color="green">
                     <Row label="مبيعات المحل (نقدية/يومية)" value={report.shopSales} />
-                    <Row label="مبيعات الآجل (فواتير بيع)" value={report.exportSales} />
                     <Row label="إجمالي الإيرادات" value={report.totalRevenue} bold />
                   </Section>
 
@@ -241,8 +220,7 @@ export default function ReportsPage() {
           <div className="space-y-4">
             <Card title="فترة التقرير">
               <div className="flex gap-3 items-end flex-wrap">
-                <Input label="من" type="date" value={expStart} onChange={(e) => setExpStart(e.target.value)} className="w-40" />
-                <Input label="إلى" type="date" value={expEnd} onChange={(e) => setExpEnd(e.target.value)} className="w-40" />
+                <Input label="الشهر" type="month" value={expMonth} onChange={(e) => setExpMonth(e.target.value)} />
                 <Button onClick={loadExpenseReport}>عرض التقرير</Button>
               </div>
             </Card>
@@ -288,8 +266,7 @@ export default function ReportsPage() {
           <div className="space-y-4">
             <Card title="فترة التقرير">
               <div className="flex gap-3 items-end flex-wrap">
-                <Input label="من" type="date" value={salesStart} onChange={(e) => setSalesStart(e.target.value)} className="w-40" />
-                <Input label="إلى" type="date" value={salesEnd} onChange={(e) => setSalesEnd(e.target.value)} className="w-40" />
+                <Input label="الشهر" type="month" value={salesMonth} onChange={(e) => setSalesMonth(e.target.value)} />
                 <Button onClick={loadSalesReport}>عرض التقرير</Button>
               </div>
             </Card>
@@ -314,7 +291,11 @@ export default function ReportsPage() {
 }
 
 function Section({ title, children, color }: { title: string; children: React.ReactNode; color: "green" | "amber" | "red" }) {
-  const colors = { green: "text-green-700 bg-green-50", amber: "text-amber-700 bg-amber-50", red: "text-red-700 bg-red-50" };
+  const colors = {
+    green: "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/20",
+    amber: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/20",
+    red: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20",
+  };
   return (
     <div className="mb-3">
       <div className={`text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-t-lg ${colors[color]}`}>{title}</div>
