@@ -31,3 +31,20 @@ table {
 th, td {
   text-align: right;
 }
+
+/* Global dark-mode native select fix */
+.dark select {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+.dark select option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4a017; border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb { background: #475569; }

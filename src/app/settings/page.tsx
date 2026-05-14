@@ -11,39 +11,43 @@ import {
   updateEmployee,
   deleteEmployee,
   getSuppliers,
-  getCustomers,
 } from "@/lib/firestore";
 import { Employee } from "@/types";
 import { toast } from "sonner";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { setDoc, getDoc, doc } from "firebase/firestore";
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState<"employees" | "account">("employees");
+  const [tab, setTab] = useState<"employees" | "logo" | "account">("employees");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(false);
   const [editEmp, setEditEmp] = useState<Employee | null>(null);
-  const [stats, setStats] = useState({ suppliers: 0, customers: 0, employees: 0 });
+  const [stats, setStats] = useState({ suppliers: 0, employees: 0 });
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
 
   const [empForm, setEmpForm] = useState({ name: "", role: "طباخ", dailyWage: 0 });
   const [pwForm, setPwForm] = useState({ current: "", newPw: "", confirm: "" });
 
   useEffect(() => {
     loadData();
+    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
+      if (snap.exists()) {
+        setLogoDataUrl(snap.data().logoDataUrl || null);
+      }
+    });
   }, []);
 
   async function loadData() {
-    const [emps, sups, custs] = await Promise.all([
+    const [emps, sups] = await Promise.all([
       getEmployees(),
       getSuppliers(),
-      getCustomers(),
     ]);
     setEmployees(emps as Employee[]);
     setStats({
       employees: emps.length,
       suppliers: sups.length,
-      customers: custs.length,
     });
   }
 
@@ -104,6 +108,25 @@ export default function SettingsPage() {
     }
   }
 
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const result = ev.target?.result as string;
+      await setDoc(doc(db, "appSettings", "branding"), { logoDataUrl: result });
+      setLogoDataUrl(result);
+      toast.success("تم رفع الشعار");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleDeleteLogo() {
+    await setDoc(doc(db, "appSettings", "branding"), { logoDataUrl: "" });
+    setLogoDataUrl(null);
+    toast.success("تم حذف الشعار");
+  }
+
   const ROLES = ["طباخ", "كاشير", "نادل", "مساعد مطبخ", "مدير", "سائق", "أمن", "نظافة", "أخرى"];
 
   return (
@@ -112,31 +135,30 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">الإعدادات</h1>
 
         {/* Stats overview */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-amber-700">{stats.employees}</p>
-            <p className="text-sm text-amber-600 mt-1">موظف</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.employees}</p>
+            <p className="text-sm text-amber-600 dark:text-amber-500 mt-1">موظف</p>
           </div>
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-orange-700">{stats.suppliers}</p>
-            <p className="text-sm text-orange-600 mt-1">مورد</p>
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-blue-700">{stats.customers}</p>
-            <p className="text-sm text-blue-600 mt-1">عميل</p>
+          <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">{stats.suppliers}</p>
+            <p className="text-sm text-orange-600 dark:text-orange-500 mt-1">مورد</p>
           </div>
         </div>
 
         <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "employees", label: "الموظفون" },
+            { key: "logo", label: "اللوجو" },
             { key: "account", label: "الحساب" },
           ].map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+                tab === t.key
+                  ? "border-yellow-500 text-yellow-600 dark:text-yellow-400 dark:border-yellow-400"
+                  : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -192,11 +214,46 @@ export default function SettingsPage() {
           </Card>
         )}
 
+        {tab === "logo" && (
+          <Card title="شعار التطبيق">
+            <div className="space-y-6 max-w-sm">
+              {logoDataUrl ? (
+                <div className="flex flex-col items-center gap-3">
+                  <img
+                    src={logoDataUrl}
+                    className="w-32 h-32 object-contain rounded-2xl border border-gray-200 dark:border-slate-600"
+                    alt="شعار التطبيق"
+                  />
+                  <Button variant="danger" size="sm" onClick={handleDeleteLogo}>
+                    حذف الشعار
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center w-32 h-32 rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 text-5xl">
+                  🥙
+                </div>
+              )}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                  رفع شعار جديد
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="block w-full text-sm text-gray-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100 dark:file:bg-yellow-950/30 dark:file:text-yellow-400"
+                />
+                <p className="text-xs text-gray-400 dark:text-slate-500">يُفضل صورة مربعة بخلفية شفافة (PNG)</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {tab === "account" && (
           <Card title="إعدادات الحساب">
             <div className="max-w-sm space-y-5">
-              <div className="bg-amber-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-amber-800">البريد الإلكتروني</p>
+              <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-400">البريد الإلكتروني</p>
                 <p className="text-gray-700 dark:text-slate-300 mt-1">{auth.currentUser?.email}</p>
               </div>
 
