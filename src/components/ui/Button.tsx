@@ -17,11 +17,11 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: "bg-amber-700 text-white hover:bg-amber-800 disabled:bg-amber-400",
-    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:bg-gray-50",
+    primary: "bg-amber-700 text-white hover:bg-amber-800 dark:bg-amber-600 dark:hover:bg-amber-700 disabled:bg-amber-400 dark:disabled:bg-amber-800",
+    secondary: "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600 disabled:opacity-50",
     danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300",
-    ghost: "text-gray-600 hover:bg-gray-100 disabled:opacity-50",
-    outline: "border border-amber-700 text-amber-700 hover:bg-amber-50 disabled:opacity-50",
+    ghost: "text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50",
+    outline: "border border-amber-700 dark:border-amber-500 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50",
   };
 
   const sizes = {
@@ -33,7 +33,7 @@ export default function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 dark:focus:ring-offset-slate-800 disabled:cursor-not-allowed",
         variants[variant],
         sizes[size],
         className

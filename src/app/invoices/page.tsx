@@ -71,10 +71,10 @@ export default function InvoicesPage() {
   return (
     <AppShell>
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-gray-900">الفواتير</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">الفواتير</h1>
 
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-          <div className="flex gap-2 border-b border-gray-200 w-full sm:w-auto">
+          <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700 w-full sm:w-auto">
             {[
               { key: "all", label: "الكل" },
               { key: "supplier", label: "فواتير شراء" },
@@ -84,7 +84,7 @@ export default function InvoicesPage() {
                 key={t.key}
                 onClick={() => setTab(t.key as typeof tab)}
                 className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                  tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                  tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
                 }`}
               >
                 {t.label}
@@ -92,7 +92,7 @@ export default function InvoicesPage() {
             ))}
           </div>
           <input
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-64"
+            className="border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm w-full sm:w-64"
             placeholder="بحث برقم الفاتورة أو الطرف..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -103,7 +103,7 @@ export default function InvoicesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[750px]">
               <thead>
-                <tr className="border-b border-gray-100 text-gray-600">
+                <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                   <th className="pb-2 font-medium">النوع</th>
                   <th className="pb-2 font-medium">رقم الفاتورة</th>
                   <th className="pb-2 font-medium">الطرف</th>
@@ -120,7 +120,7 @@ export default function InvoicesPage() {
                     ? (inv as SupplierInvoice).supplierName
                     : (inv as SalesInvoice).customerName;
                   return (
-                    <tr key={`${inv.invoiceType}-${inv.id}`} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={`${inv.invoiceType}-${inv.id}`} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                       <td className="py-2">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           inv.invoiceType === "supplier"
@@ -132,7 +132,7 @@ export default function InvoicesPage() {
                       </td>
                       <td className="py-2 font-mono text-xs">{inv.invoiceNumber}</td>
                       <td className="py-2 font-medium">{party}</td>
-                      <td className="py-2 text-gray-500">{formatDate(inv.date)}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{formatDate(inv.date)}</td>
                       <td className="py-2 font-medium text-amber-700">{formatCurrency(inv.totalAmount)}</td>
                       <td className="py-2 text-green-600">{formatCurrency(inv.paidAmount)}</td>
                       <td className="py-2"><StatusBadge status={inv.status} /></td>
@@ -149,7 +149,7 @@ export default function InvoicesPage() {
                               href={inv.pdfUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-xs text-gray-500 hover:underline mr-1"
+                              className="text-xs text-gray-500 dark:text-slate-500 hover:underline mr-1"
                             >
                               تحميل
                             </a>
@@ -161,7 +161,7 @@ export default function InvoicesPage() {
                 })}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={8} className="text-center text-gray-400 py-8">
+                    <td colSpan={8} className="text-center text-gray-400 dark:text-slate-600 py-8">
                       لا توجد فواتير
                     </td>
                   </tr>

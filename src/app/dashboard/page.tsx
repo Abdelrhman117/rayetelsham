@@ -109,8 +109,8 @@ export default function DashboardPage() {
     <AppShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">لوحة التحكم</h1>
-          <p className="text-sm text-gray-500 mt-1">اليوم: {today}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">لوحة التحكم</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">اليوم: {today}</p>
         </div>
 
         {/* Today stats */}
@@ -151,8 +151,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <h2 className="font-semibold text-gray-800 mb-4">المبيعات والمصروفات (آخر 7 أيام)</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+          <h2 className="font-semibold text-gray-800 dark:text-slate-200 mb-4">المبيعات والمصروفات (آخر 7 أيام)</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

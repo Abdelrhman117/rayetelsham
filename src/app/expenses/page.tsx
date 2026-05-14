@@ -101,7 +101,7 @@ export default function ExpensesPage() {
     <AppShell>
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">المصروفات والإيجارات</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">المصروفات والإيجارات</h1>
           <Button onClick={openAdd}>+ تسجيل مصروف</Button>
         </div>
 
@@ -128,7 +128,7 @@ export default function ExpensesPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 text-gray-600">
+                    <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                       <th className="pb-2 font-medium">التاريخ</th>
                       <th className="pb-2 font-medium">التصنيف</th>
                       <th className="pb-2 font-medium">المبلغ</th>
@@ -139,7 +139,7 @@ export default function ExpensesPage() {
                   </thead>
                   <tbody>
                     {filtered.map((exp) => (
-                      <tr key={exp.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={exp.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                         <td className="py-2">{exp.date}</td>
                         <td className="py-2">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800">
@@ -147,8 +147,8 @@ export default function ExpensesPage() {
                           </span>
                         </td>
                         <td className="py-2 font-medium text-red-600">{formatCurrency(exp.amount)}</td>
-                        <td className="py-2 text-gray-500">{exp.paymentMethod}</td>
-                        <td className="py-2 text-gray-400 text-xs max-w-xs truncate">{exp.note}</td>
+                        <td className="py-2 text-gray-500 dark:text-slate-500">{exp.paymentMethod}</td>
+                        <td className="py-2 text-gray-400 dark:text-slate-600 text-xs max-w-xs truncate">{exp.note}</td>
                         <td className="py-2">
                           <div className="flex gap-1">
                             <button onClick={() => openEdit(exp)} className="text-xs text-amber-700 hover:underline px-1">تعديل</button>
@@ -158,7 +158,7 @@ export default function ExpensesPage() {
                       </tr>
                     ))}
                     {!filtered.length && (
-                      <tr><td colSpan={6} className="text-center text-gray-400 py-6">لا توجد مصروفات</td></tr>
+                      <tr><td colSpan={6} className="text-center text-gray-400 dark:text-slate-600 py-6">لا توجد مصروفات</td></tr>
                     )}
                   </tbody>
                 </table>

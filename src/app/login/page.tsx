@@ -49,12 +49,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🥙</div>
-          <h1 className="text-3xl font-bold text-white">رايا الشام</h1>
+          <h1 className="text-3xl font-bold text-white">راية الشام</h1>
           <p className="text-amber-200 mt-1">نظام إدارة المطعم</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">تسجيل الدخول</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-200 mb-6 text-center">تسجيل الدخول</h2>
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
               label="البريد الإلكتروني"
@@ -78,7 +78,7 @@ export default function LoginPage() {
               دخول
             </Button>
           </form>
-          <p className="text-center text-xs text-gray-400 mt-4">
+          <p className="text-center text-xs text-gray-400 dark:text-slate-600 mt-4">
             للمسؤول فقط — لا يوجد تسجيل عام
           </p>
         </div>

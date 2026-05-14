@@ -109,7 +109,7 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-gray-900">الإعدادات</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">الإعدادات</h1>
 
         {/* Stats overview */}
         <div className="grid grid-cols-3 gap-4">
@@ -127,7 +127,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "employees", label: "الموظفون" },
             { key: "account", label: "الحساب" },
@@ -136,7 +136,7 @@ export default function SettingsPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -152,7 +152,7 @@ export default function SettingsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-600">
+                  <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                     <th className="pb-2 font-medium">الاسم</th>
                     <th className="pb-2 font-medium">الدور</th>
                     <th className="pb-2 font-medium">الأجر اليومي</th>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
                 </thead>
                 <tbody>
                   {employees.map((emp) => (
-                    <tr key={emp.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={emp.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                       <td className="py-2 font-medium">{emp.name}</td>
                       <td className="py-2">
                         <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                         </span>
                       </td>
                       <td className="py-2 text-amber-700 font-medium">
-                        {new Intl.NumberFormat("ar").format(emp.dailyWage)} ل.س
+                        {new Intl.NumberFormat("ar-EG").format(emp.dailyWage)} ج.م
                       </td>
                       <td className="py-2">
                         <div className="flex gap-1">
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                   ))}
                   {!employees.length && (
                     <tr>
-                      <td colSpan={4} className="text-center text-gray-400 py-6">
+                      <td colSpan={4} className="text-center text-gray-400 dark:text-slate-600 py-6">
                         لا يوجد موظفون. أضف أول موظف.
                       </td>
                     </tr>
@@ -197,11 +197,11 @@ export default function SettingsPage() {
             <div className="max-w-sm space-y-5">
               <div className="bg-amber-50 rounded-lg p-4">
                 <p className="text-sm font-medium text-amber-800">البريد الإلكتروني</p>
-                <p className="text-gray-700 mt-1">{auth.currentUser?.email}</p>
+                <p className="text-gray-700 dark:text-slate-300 mt-1">{auth.currentUser?.email}</p>
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-800">تغيير كلمة المرور</h3>
+                <h3 className="font-medium text-gray-800 dark:text-slate-200">تغيير كلمة المرور</h3>
                 <Input
                   label="كلمة المرور الحالية"
                   type="password"
@@ -225,10 +225,10 @@ export default function SettingsPage() {
                 </Button>
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
-                <h3 className="font-medium text-gray-800 mb-3">معلومات التطبيق</h3>
-                <div className="text-sm text-gray-500 space-y-1">
-                  <p>🥙 رايا الشام — نظام إدارة المطعم</p>
+              <div className="border-t border-gray-100 dark:border-slate-700 pt-4">
+                <h3 className="font-medium text-gray-800 dark:text-slate-200 mb-3">معلومات التطبيق</h3>
+                <div className="text-sm text-gray-500 dark:text-slate-500 space-y-1">
+                  <p>🥙 راية الشام — نظام إدارة المطعم</p>
                   <p>الإصدار: 1.0.0</p>
                   <p>المنصة: Next.js 14 + Firebase</p>
                 </div>
@@ -253,7 +253,7 @@ export default function SettingsPage() {
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </Select>
           <Input
-            label="الأجر اليومي (ل.س)"
+            label="الأجر اليومي (ج.م)"
             type="number"
             min={0}
             value={empForm.dailyWage}

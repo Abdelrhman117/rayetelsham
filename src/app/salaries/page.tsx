@@ -101,9 +101,9 @@ export default function SalariesPage() {
   return (
     <AppShell>
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-gray-900">الرواتب والحضور</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">الرواتب والحضور</h1>
 
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "daily", label: "سجل الحضور اليومي" },
             { key: "history", label: "تقرير الرواتب" },
@@ -112,7 +112,7 @@ export default function SalariesPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -141,7 +141,7 @@ export default function SalariesPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100 text-gray-600">
+                      <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                         <th className="pb-2 font-medium">الموظف</th>
                         <th className="pb-2 font-medium">الدور</th>
                         <th className="pb-2 font-medium">الأجر اليومي</th>
@@ -153,7 +153,7 @@ export default function SalariesPage() {
                       {employees.map((emp) => (
                         <tr key={emp.id} className={`border-b border-gray-50 ${attendance[emp.id]?.worked ? "bg-green-50/50" : ""}`}>
                           <td className="py-3 font-medium">{emp.name}</td>
-                          <td className="py-3 text-gray-500">{emp.role}</td>
+                          <td className="py-3 text-gray-500 dark:text-slate-500">{emp.role}</td>
                           <td className="py-3 text-amber-700 font-medium">{formatCurrency(emp.dailyWage)}</td>
                           <td className="py-3 text-center">
                             <input
@@ -192,7 +192,7 @@ export default function SalariesPage() {
               </Card>
             ) : (
               <Card>
-                <p className="text-gray-400 text-center py-4">
+                <p className="text-gray-400 dark:text-slate-600 text-center py-4">
                   لا يوجد موظفون. أضفهم من صفحة <a href="/settings" className="text-amber-700 hover:underline">الإعدادات</a>.
                 </p>
               </Card>
@@ -228,7 +228,7 @@ export default function SalariesPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 text-gray-600">
+                    <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                       <th className="pb-2 font-medium">التاريخ</th>
                       <th className="pb-2 font-medium">الموظف</th>
                       <th className="pb-2 font-medium">الأجر</th>
@@ -237,7 +237,7 @@ export default function SalariesPage() {
                   </thead>
                   <tbody>
                     {records.map((r) => (
-                      <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                         <td className="py-2">{r.date}</td>
                         <td className="py-2 font-medium">{r.employeeName}</td>
                         <td className="py-2 text-amber-700">{formatCurrency(r.dailyWage)}</td>
@@ -251,7 +251,7 @@ export default function SalariesPage() {
                       </tr>
                     ))}
                     {!records.length && (
-                      <tr><td colSpan={4} className="text-center text-gray-400 py-6">لا توجد سجلات</td></tr>
+                      <tr><td colSpan={4} className="text-center text-gray-400 dark:text-slate-600 py-6">لا توجد سجلات</td></tr>
                     )}
                   </tbody>
                 </table>
