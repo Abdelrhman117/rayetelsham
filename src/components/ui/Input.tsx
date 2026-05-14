@@ -12,7 +12,7 @@ export function Input({ label, error, className, ...props }: InputProps) {
       {label && <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{label}</label>}
       <input
         className={cn(
-          "w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-800 placeholder:text-gray-400 dark:placeholder:text-slate-500 transition-colors",
+          "w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-800 placeholder:text-gray-400 dark:placeholder:text-slate-500 transition-colors",
           error && "border-red-400 focus:ring-red-400",
           className
         )}
@@ -34,7 +34,7 @@ export function Select({ label, error, className, children, ...props }: SelectPr
       {label && <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{label}</label>}
       <select
         className={cn(
-          "w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-800 transition-colors",
+          "w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-800 transition-colors",
           error && "border-red-400 focus:ring-red-400",
           className
         )}
@@ -59,7 +59,7 @@ export function Textarea({ label, error, className, ...props }: TextareaProps) {
       <textarea
         rows={3}
         className={cn(
-          "w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-y transition-colors",
+          "w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent resize-y transition-colors",
           error && "border-red-400 focus:ring-red-400",
           className
         )}

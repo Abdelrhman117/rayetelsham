@@ -118,21 +118,38 @@ export async function addSupplierInvoice(data: Record<string, unknown>) {
     updatedAt: Timestamp.now(),
   });
 
-  // Auto-add stock to warehouse
-  const items = data.items as { name: string; quantity: number }[];
+  // Sync stock: update existing items or create new ones
+  const items = data.items as { name: string; unit: string; quantity: number }[];
   const warehouse = data.receivingWarehouse as "main" | "shop";
-  // Items are added by name; if they exist in inventory update stock
+  const stockField = warehouse === "main" ? "stockMain" : "stockShop";
+  const otherField = warehouse === "main" ? "stockShop" : "stockMain";
+
   const itemsSnap = await getDocs(col("items"));
   const batch = writeBatch(db);
+
   for (const invoiceItem of items) {
     const existing = itemsSnap.docs.find(
       (d) => d.data().name.toLowerCase() === invoiceItem.name.toLowerCase()
     );
     if (existing) {
-      const field = warehouse === "main" ? "stockMain" : "stockShop";
-      batch.update(existing.ref, { [field]: increment(invoiceItem.quantity), updatedAt: Timestamp.now() });
+      batch.update(existing.ref, {
+        [stockField]: increment(invoiceItem.quantity),
+        updatedAt: Timestamp.now(),
+      });
+    } else {
+      const newItemRef = doc(col("items"));
+      batch.set(newItemRef, {
+        name: invoiceItem.name,
+        unit: invoiceItem.unit || "",
+        [stockField]: invoiceItem.quantity,
+        [otherField]: 0,
+        lowStockThreshold: 0,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
     }
   }
+
   await batch.commit();
 
   return ref;

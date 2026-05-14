@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { getDoc, doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/dashboard",   label: "لوحة التحكم",       icon: "📊" },
@@ -23,6 +25,16 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setLogoDataUrl(data.logoDataUrl || null);
+      }
+    });
+  }, []);
 
   async function handleLogout() {
     await signOut(auth);
@@ -40,9 +52,13 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Header */}
       <div className="px-4 py-5 border-b border-white/10">
         <div className="text-center">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-black/30">
-            <span className="text-3xl">🥙</span>
-          </div>
+          {logoDataUrl ? (
+            <img src={logoDataUrl} className="w-12 h-12 object-contain rounded-xl mx-auto mb-3" alt="logo" />
+          ) : (
+            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-black/30">
+              <span className="text-3xl">🥙</span>
+            </div>
+          )}
           <h1 className="text-lg font-bold tracking-wide">راية الشام</h1>
           <p className="text-xs text-amber-300/60 dark:text-slate-500 mt-0.5">نظام إدارة المطعم</p>
           <div className="mt-3 inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
@@ -71,7 +87,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
               <span className="text-base w-5 text-center shrink-0">{item.icon}</span>
               <span className="flex-1">{item.label}</span>
               {active && (
-                <span className="w-1.5 h-5 rounded-full bg-amber-300 dark:bg-amber-400 shrink-0"></span>
+                <span className="w-1.5 h-5 rounded-full bg-yellow-400 shrink-0"></span>
               )}
             </Link>
           );
