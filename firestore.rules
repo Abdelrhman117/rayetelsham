@@ -1,0 +1,245 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ======================================================
+    // HELPER FUNCTIONS
+    // ======================================================
+
+    // Only the two authorised admin accounts can access anything
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email_verified == true &&
+        (request.auth.token.email == 'admin@gazal.com' ||
+         request.auth.token.email == 'admin@ahmed.com');
+    }
+
+    // Require all write fields to have valid timestamps
+    function hasTimestamp(field) {
+      return request.resource.data[field] is timestamp;
+    }
+
+    // ======================================================
+    // INVENTORY
+    // ======================================================
+
+    match /items/{itemId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['name', 'unit', 'stockMain', 'stockShop', 'lowStockThreshold'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.stockMain is number
+        && request.resource.data.stockShop is number
+        && request.resource.data.stockMain >= 0
+        && request.resource.data.stockShop >= 0;
+      allow update: if isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow delete: if isAdmin();
+    }
+
+    match /transfers/{transferId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['fromWarehouse', 'toWarehouse', 'items'])
+        && request.resource.data.fromWarehouse != request.resource.data.toWarehouse;
+      allow update, delete: if false; // transfers are immutable
+    }
+
+    match /inventoryCounts/{countId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['date', 'month', 'items']);
+      allow update, delete: if isAdmin();
+    }
+
+    // ======================================================
+    // SUPPLIERS & PURCHASES
+    // ======================================================
+
+    match /suppliers/{supplierId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow update: if isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow delete: if isAdmin();
+    }
+
+    match /supplierInvoices/{invoiceId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['supplierId', 'supplierName', 'items', 'totalAmount', 'date'])
+        && request.resource.data.totalAmount is number
+        && request.resource.data.totalAmount > 0;
+      allow update: if isAdmin();
+      allow delete: if false; // invoices should not be deleted
+    }
+
+    match /supplierPayments/{paymentId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['supplierId', 'amount', 'date'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update, delete: if false; // payments are immutable
+    }
+
+    // ======================================================
+    // CUSTOMERS & SALES
+    // ======================================================
+
+    match /customers/{customerId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow update: if isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow delete: if isAdmin();
+    }
+
+    match /salesInvoices/{invoiceId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['customerId', 'customerName', 'items', 'totalAmount', 'date'])
+        && request.resource.data.totalAmount is number
+        && request.resource.data.totalAmount > 0;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /customerPayments/{paymentId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['customerId', 'amount', 'date'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update, delete: if false;
+    }
+
+    // ======================================================
+    // DAILY SALES
+    // ======================================================
+
+    match /dailySales/{docId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasAll(['date', 'cashSales', 'cardSales', 'walletSales', 'totalSales'])
+        && request.resource.data.cashSales is number
+        && request.resource.data.cashSales >= 0
+        && request.resource.data.cardSales is number
+        && request.resource.data.cardSales >= 0
+        && request.resource.data.walletSales is number
+        && request.resource.data.walletSales >= 0;
+      allow delete: if isAdmin();
+    }
+
+    // ======================================================
+    // EXPENSES
+    // ======================================================
+
+    match /expenses/{expenseId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['date', 'category', 'amount'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0
+        && request.resource.data.category is string;
+      allow update: if isAdmin()
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow delete: if isAdmin();
+    }
+
+    // ======================================================
+    // EMPLOYEES & SALARIES
+    // ======================================================
+
+    match /employees/{employeeId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['name', 'role', 'dailyWage'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.dailyWage is number
+        && request.resource.data.dailyWage > 0;
+      allow update: if isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow delete: if isAdmin();
+    }
+
+    match /salaries/{salaryId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasAll(['date', 'employeeId', 'dailyWage'])
+        && request.resource.data.dailyWage is number
+        && request.resource.data.dailyWage >= 0;
+      allow delete: if isAdmin();
+    }
+
+    // ======================================================
+    // DEDUCTIONS (خصومات)
+    // ======================================================
+
+    match /deductions/{deductionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['employeeId', 'employeeName', 'date', 'amount', 'reason'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ======================================================
+    // ADVANCES / LOANS (سلف)
+    // ======================================================
+
+    match /advances/{advanceId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['employeeId', 'employeeName', 'date', 'amount', 'reason'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /advancePayments/{paymentId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['advanceId', 'employeeId', 'amount', 'date'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update, delete: if false;
+    }
+
+    // ======================================================
+    // APP SETTINGS & MISC
+    // ======================================================
+
+    match /appSettings/{docId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /warehouses/{warehouseId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Catch-all: deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

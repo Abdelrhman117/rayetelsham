@@ -338,3 +338,96 @@ export async function getInventoryCounts() {
 export async function addInventoryCount(data: Record<string, unknown>) {
   return addDoc(col("inventoryCounts"), { ...data, createdAt: Timestamp.now() });
 }
+
+// =====================================================
+// DEDUCTIONS (خصومات)
+// =====================================================
+
+export async function getDeductions(employeeId?: string) {
+  const constraints: QueryConstraint[] = [orderBy("date", "desc")];
+  if (employeeId) constraints.unshift(where("employeeId", "==", employeeId));
+  const snap = await getDocs(query(col("deductions"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addDeduction(data: Record<string, unknown>) {
+  return addDoc(col("deductions"), { ...data, createdAt: Timestamp.now() });
+}
+
+export async function updateDeduction(id: string, data: Record<string, unknown>) {
+  return updateDoc(docRef("deductions", id), data);
+}
+
+export async function deleteDeduction(id: string) {
+  return deleteDoc(docRef("deductions", id));
+}
+
+// =====================================================
+// ADVANCES / LOANS (سلف)
+// =====================================================
+
+export async function getAdvances(employeeId?: string) {
+  const constraints: QueryConstraint[] = [orderBy("date", "desc")];
+  if (employeeId) constraints.unshift(where("employeeId", "==", employeeId));
+  const snap = await getDocs(query(col("advances"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addAdvance(data: Record<string, unknown>) {
+  return addDoc(col("advances"), {
+    ...data,
+    repaidAmount: 0,
+    status: "active",
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+  });
+}
+
+export async function updateAdvance(id: string, data: Record<string, unknown>) {
+  return updateDoc(docRef("advances", id), { ...data, updatedAt: Timestamp.now() });
+}
+
+export async function deleteAdvance(id: string) {
+  return deleteDoc(docRef("advances", id));
+}
+
+export async function repayAdvance(advanceId: string, paymentAmount: number, date: string, note: string) {
+  const advanceRef = docRef("advances", advanceId);
+  const advSnap = await getDoc(advanceRef);
+  if (!advSnap.exists()) throw new Error("Advance not found");
+
+  const adv = advSnap.data();
+  const newRepaid = (adv.repaidAmount || 0) + paymentAmount;
+  const newStatus = newRepaid >= adv.amount ? "repaid" : "partial";
+
+  const batch = writeBatch(db);
+
+  // Record the payment
+  const payRef = doc(col("advancePayments"));
+  batch.set(payRef, {
+    advanceId,
+    employeeId: adv.employeeId,
+    employeeName: adv.employeeName,
+    amount: paymentAmount,
+    date,
+    note,
+    createdAt: Timestamp.now(),
+  });
+
+  // Update advance balance
+  batch.update(advanceRef, {
+    repaidAmount: newRepaid,
+    status: newStatus,
+    updatedAt: Timestamp.now(),
+  });
+
+  await batch.commit();
+  return payRef.id;
+}
+
+export async function getAdvancePayments(advanceId?: string) {
+  const constraints: QueryConstraint[] = [orderBy("date", "desc")];
+  if (advanceId) constraints.unshift(where("advanceId", "==", advanceId));
+  const snap = await getDocs(query(col("advancePayments"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}

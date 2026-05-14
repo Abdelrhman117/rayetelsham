@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/dashboard", label: "لوحة التحكم", icon: "📊" },
@@ -22,11 +23,14 @@ const navItems = [
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   async function handleLogout() {
     await signOut(auth);
     router.push("/login");
   }
+
+  const displayName = user?.email === "admin@gazal.com" ? "غزال" : user?.email === "admin@ahmed.com" ? "أحمد" : user?.email ?? "";
 
   return (
     <div className="flex flex-col h-full bg-amber-900 dark:bg-slate-900 text-white transition-colors">
@@ -35,6 +39,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           <div className="text-2xl mb-1">🥙</div>
           <h1 className="text-lg font-bold">راية الشام</h1>
           <p className="text-xs text-amber-300 dark:text-slate-400">نظام إدارة المطعم</p>
+          <p className="text-xs text-amber-400 dark:text-slate-500 mt-1 truncate">👤 {displayName}</p>
         </div>
       </div>
       <nav className="flex-1 overflow-y-auto p-2">

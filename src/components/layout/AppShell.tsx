@@ -2,12 +2,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import Sidebar from "./Sidebar";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { Toaster } from "sonner";
+import { toast } from "sonner";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -25,6 +28,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (!user) {
     if (typeof window !== "undefined") router.push("/login");
     return null;
+  }
+
+  // Block non-admin users even if somehow authenticated
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50 dark:bg-slate-900 px-4">
+        <div className="text-center max-w-sm">
+          <div className="text-5xl mb-4">🚫</div>
+          <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">غير مصرح بالدخول</h2>
+          <p className="text-gray-600 dark:text-slate-400 text-sm mb-4">
+            هذا الحساب ({user.email}) ليس لديه صلاحية الوصول لهذا النظام.
+          </p>
+          <button
+            onClick={async () => { await signOut(auth); router.push("/login"); }}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700"
+          >
+            تسجيل الخروج
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
