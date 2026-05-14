@@ -126,11 +126,11 @@ export default function SalesPage() {
     <AppShell>
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">المبيعات والعملاء</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">المبيعات والعملاء</h1>
           <Button onClick={() => setInvoiceModal(true)}>+ فاتورة بيع جديدة</Button>
         </div>
 
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "invoices", label: "فواتير البيع" },
             { key: "customers", label: "العملاء" },
@@ -140,7 +140,7 @@ export default function SalesPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -153,7 +153,7 @@ export default function SalesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[650px]">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-600">
+                  <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                     <th className="pb-2 font-medium">رقم الفاتورة</th>
                     <th className="pb-2 font-medium">العميل</th>
                     <th className="pb-2 font-medium">التاريخ</th>
@@ -165,10 +165,10 @@ export default function SalesPage() {
                 </thead>
                 <tbody>
                   {invoices.map((inv) => (
-                    <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                       <td className="py-2 font-mono text-xs">{inv.invoiceNumber}</td>
                       <td className="py-2 font-medium">{inv.customerName}</td>
-                      <td className="py-2 text-gray-500">{formatDate(inv.date)}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{formatDate(inv.date)}</td>
                       <td className="py-2 text-amber-700 font-medium">{formatCurrency(inv.totalAmount)}</td>
                       <td className="py-2 text-green-600">{formatCurrency(inv.paidAmount)}</td>
                       <td className="py-2"><StatusBadge status={inv.status} /></td>
@@ -183,13 +183,13 @@ export default function SalesPage() {
                             </button>
                           )}
                           <button onClick={() => generatePdf(inv)} className="text-xs text-blue-600 hover:underline px-1">PDF</button>
-                          {inv.pdfUrl && <a href={inv.pdfUrl} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:underline px-1">تحميل</a>}
+                          {inv.pdfUrl && <a href={inv.pdfUrl} target="_blank" rel="noreferrer" className="text-xs text-gray-500 dark:text-slate-500 hover:underline px-1">تحميل</a>}
                         </div>
                       </td>
                     </tr>
                   ))}
                   {!invoices.length && (
-                    <tr><td colSpan={7} className="text-center text-gray-400 py-6">لا توجد فواتير بعد</td></tr>
+                    <tr><td colSpan={7} className="text-center text-gray-400 dark:text-slate-600 py-6">لا توجد فواتير بعد</td></tr>
                   )}
                 </tbody>
               </table>
@@ -209,7 +209,7 @@ export default function SalesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-600">
+                  <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                     <th className="pb-2 font-medium">الاسم</th>
                     <th className="pb-2 font-medium">التواصل</th>
                     <th className="pb-2 font-medium">العنوان</th>
@@ -218,10 +218,10 @@ export default function SalesPage() {
                 </thead>
                 <tbody>
                   {customers.map((cust) => (
-                    <tr key={cust.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={cust.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                       <td className="py-2 font-medium">{cust.name}</td>
-                      <td className="py-2 text-gray-500">{cust.contact}</td>
-                      <td className="py-2 text-gray-500">{cust.address}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{cust.contact}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{cust.address}</td>
                       <td className="py-2">
                         <div className="flex gap-1">
                           <button onClick={() => { setSelectedCustomer(cust); setTab("statement"); }} className="text-xs text-blue-600 hover:underline px-1">كشف حساب</button>
@@ -232,7 +232,7 @@ export default function SalesPage() {
                     </tr>
                   ))}
                   {!customers.length && (
-                    <tr><td colSpan={4} className="text-center text-gray-400 py-6">لا يوجد عملاء بعد</td></tr>
+                    <tr><td colSpan={4} className="text-center text-gray-400 dark:text-slate-600 py-6">لا يوجد عملاء بعد</td></tr>
                   )}
                 </tbody>
               </table>
@@ -243,9 +243,9 @@ export default function SalesPage() {
         {tab === "statement" && (
           <div className="space-y-4">
             <div className="max-w-xs">
-              <label className="text-sm font-medium text-gray-700 block mb-1">اختر عميلاً</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 block mb-1">اختر عميلاً</label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm"
                 value={selectedCustomer?.id || ""}
                 onChange={(e) => setSelectedCustomer(customers.find((c) => c.id === e.target.value) || null)}
               >
@@ -262,7 +262,7 @@ export default function SalesPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100 text-gray-600">
+                      <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                         <th className="pb-2 font-medium">رقم الفاتورة</th>
                         <th className="pb-2 font-medium">التاريخ</th>
                         <th className="pb-2 font-medium">المبلغ</th>
@@ -283,7 +283,7 @@ export default function SalesPage() {
                         </tr>
                       ))}
                       {!statementInvoices.length && (
-                        <tr><td colSpan={6} className="text-center text-gray-400 py-4">لا توجد فواتير</td></tr>
+                        <tr><td colSpan={6} className="text-center text-gray-400 dark:text-slate-600 py-4">لا توجد فواتير</td></tr>
                       )}
                     </tbody>
                   </table>

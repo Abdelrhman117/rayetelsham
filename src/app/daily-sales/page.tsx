@@ -100,9 +100,9 @@ export default function DailySalesPage() {
   return (
     <AppShell>
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-gray-900">المبيعات اليومية (المحل)</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">المبيعات اليومية (المحل)</h1>
 
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "entry", label: "تسجيل مبيعات اليوم" },
             { key: "history", label: "سجل المبيعات" },
@@ -111,7 +111,7 @@ export default function DailySalesPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -168,11 +168,11 @@ export default function DailySalesPage() {
             </Card>
 
             <Card title="ملاحظة حول نقطة البيع">
-              <div className="text-sm text-gray-600 space-y-3">
-                <p className="font-medium text-gray-700">الخيار الحالي: الإدخال السريع (Option A)</p>
+              <div className="text-sm text-gray-600 dark:text-slate-400 space-y-3">
+                <p className="font-medium text-gray-700 dark:text-slate-300">الخيار الحالي: الإدخال السريع (Option A)</p>
                 <p>يتم إدخال إجمالي المبيعات النقدية وبالبطاقة والمحفظة يدوياً لكل يوم، دون خصم تلقائي من المخزون.</p>
-                <hr className="border-gray-200" />
-                <p className="text-gray-500 text-xs">
+                <hr className="border-gray-200 dark:border-slate-700" />
+                <p className="text-gray-500 dark:text-slate-500 text-xs">
                   {/* Option B (POS) is planned as future improvement:
                       A full point-of-sale interface with product buttons, cart, and
                       recipe-based stock deduction from shop inventory. */}
@@ -244,7 +244,7 @@ export default function DailySalesPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 text-gray-600">
+                    <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                       <th className="pb-2 font-medium">التاريخ</th>
                       <th className="pb-2 font-medium">نقد</th>
                       <th className="pb-2 font-medium">بطاقة</th>
@@ -255,17 +255,17 @@ export default function DailySalesPage() {
                   </thead>
                   <tbody>
                     {sales.map((day) => (
-                      <tr key={day.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={day.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                         <td className="py-2">{day.date}</td>
                         <td className="py-2 text-green-600">{formatCurrency(day.cashSales)}</td>
                         <td className="py-2 text-blue-600">{formatCurrency(day.cardSales)}</td>
                         <td className="py-2 text-purple-600">{formatCurrency(day.walletSales)}</td>
                         <td className="py-2 font-bold text-amber-700">{formatCurrency(day.totalSales)}</td>
-                        <td className="py-2 text-gray-500 text-xs">{day.note}</td>
+                        <td className="py-2 text-gray-500 dark:text-slate-500 text-xs">{day.note}</td>
                       </tr>
                     ))}
                     {!sales.length && (
-                      <tr><td colSpan={6} className="text-center text-gray-400 py-6">لا توجد بيانات</td></tr>
+                      <tr><td colSpan={6} className="text-center text-gray-400 dark:text-slate-600 py-6">لا توجد بيانات</td></tr>
                     )}
                   </tbody>
                 </table>

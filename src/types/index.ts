@@ -155,6 +155,42 @@ export interface SalaryRecord {
   createdAt: Timestamp;
 }
 
+export interface Deduction {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  amount: number;
+  reason: string;
+  note: string;
+  createdAt: Timestamp;
+}
+
+export interface Advance {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  amount: number;
+  repaidAmount: number;
+  status: "active" | "partial" | "repaid";
+  reason: string;
+  note: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface AdvancePayment {
+  id: string;
+  advanceId: string;
+  employeeId: string;
+  employeeName: string;
+  amount: number;
+  date: string;
+  note: string;
+  createdAt: Timestamp;
+}
+
 export interface InventoryCount {
   id: string;
   date: string;

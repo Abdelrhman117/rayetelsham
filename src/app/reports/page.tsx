@@ -151,9 +151,9 @@ export default function ReportsPage() {
   return (
     <AppShell>
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-gray-900">التقارير والإحصائيات</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">التقارير والإحصائيات</h1>
 
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "pl", label: "الأرباح والخسائر" },
             { key: "expenses", label: "تقرير المصروفات" },
@@ -163,7 +163,7 @@ export default function ReportsPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -213,7 +213,7 @@ export default function ReportsPage() {
                   </Section>
 
                   <div className={`flex items-center justify-between py-3 px-4 rounded-lg ${report.grossProfit >= 0 ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-                    <span className="font-bold text-gray-800 text-base">مجمل الربح</span>
+                    <span className="font-bold text-gray-800 dark:text-slate-200 text-base">مجمل الربح</span>
                     <span className={`font-bold text-base ${report.grossProfit >= 0 ? "text-green-700" : "text-red-700"}`}>
                       {formatCurrency(report.grossProfit)}
                     </span>
@@ -226,7 +226,7 @@ export default function ReportsPage() {
                   </Section>
 
                   <div className={`flex items-center justify-between py-4 px-4 rounded-xl border-2 mt-4 ${report.netProfit >= 0 ? "bg-green-50 border-green-400" : "bg-red-50 border-red-400"}`}>
-                    <span className="font-bold text-gray-900 text-lg">صافي الربح / الخسارة</span>
+                    <span className="font-bold text-gray-900 dark:text-slate-100 text-lg">صافي الربح / الخسارة</span>
                     <span className={`font-bold text-2xl ${report.netProfit >= 0 ? "text-green-700" : "text-red-700"}`}>
                       {report.netProfit >= 0 ? "+" : ""}{formatCurrency(report.netProfit)}
                     </span>
@@ -260,14 +260,14 @@ export default function ReportsPage() {
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b text-gray-600">
+                      <tr className="border-b text-gray-600 dark:text-slate-400">
                         <th className="pb-2 font-medium">التصنيف</th>
                         <th className="pb-2 font-medium">الإجمالي</th>
                       </tr>
                     </thead>
                     <tbody>
                       {expData.map((row) => (
-                        <tr key={row.category} className="border-b border-gray-50 hover:bg-gray-50">
+                        <tr key={row.category} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                           <td className="py-2">{row.category}</td>
                           <td className="py-2 font-medium text-red-600">{formatCurrency(row.total)}</td>
                         </tr>
@@ -318,7 +318,7 @@ function Section({ title, children, color }: { title: string; children: React.Re
   return (
     <div className="mb-3">
       <div className={`text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-t-lg ${colors[color]}`}>{title}</div>
-      <div className="border border-gray-100 rounded-b-lg divide-y divide-gray-50">
+      <div className="border border-gray-100 dark:border-slate-700 rounded-b-lg divide-y divide-gray-50">
         {children}
       </div>
     </div>
@@ -327,9 +327,9 @@ function Section({ title, children, color }: { title: string; children: React.Re
 
 function Row({ label, value, bold }: { label: string; value: number; bold?: boolean }) {
   return (
-    <div className={`flex items-center justify-between px-3 py-2 ${bold ? "bg-gray-50" : ""}`}>
-      <span className={`text-sm ${bold ? "font-semibold text-gray-800" : "text-gray-600"}`}>{label}</span>
-      <span className={`text-sm ${bold ? "font-bold text-gray-900" : "text-gray-700"}`}>{formatCurrency(value)}</span>
+    <div className={`flex items-center justify-between px-3 py-2 ${bold ? "bg-gray-50 dark:bg-slate-900" : ""}`}>
+      <span className={`text-sm ${bold ? "font-semibold text-gray-800 dark:text-slate-200" : "text-gray-600 dark:text-slate-400"}`}>{label}</span>
+      <span className={`text-sm ${bold ? "font-bold text-gray-900 dark:text-slate-100" : "text-gray-700 dark:text-slate-300"}`}>{formatCurrency(value)}</span>
     </div>
   );
 }

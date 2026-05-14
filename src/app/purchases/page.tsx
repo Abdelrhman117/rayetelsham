@@ -133,12 +133,12 @@ export default function PurchasesPage() {
     <AppShell>
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">المشتريات والموردون</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">المشتريات والموردون</h1>
           <Button onClick={() => setInvoiceModal(true)}>+ فاتورة شراء جديدة</Button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700">
           {[
             { key: "invoices", label: "فواتير الشراء" },
             { key: "suppliers", label: "الموردون" },
@@ -148,7 +148,7 @@ export default function PurchasesPage() {
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t.key ? "border-amber-700 text-amber-700" : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -161,7 +161,7 @@ export default function PurchasesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[700px]">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-600">
+                  <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                     <th className="pb-2 font-medium">رقم الفاتورة</th>
                     <th className="pb-2 font-medium">المورد</th>
                     <th className="pb-2 font-medium">التاريخ</th>
@@ -174,14 +174,14 @@ export default function PurchasesPage() {
                 </thead>
                 <tbody>
                   {invoices.map((inv) => (
-                    <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                       <td className="py-2 font-mono text-xs">{inv.invoiceNumber}</td>
                       <td className="py-2 font-medium">{inv.supplierName}</td>
-                      <td className="py-2 text-gray-500">{formatDate(inv.date)}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{formatDate(inv.date)}</td>
                       <td className="py-2 text-amber-700 font-medium">{formatCurrency(inv.totalAmount)}</td>
                       <td className="py-2">{formatCurrency(inv.paidAmount)}</td>
                       <td className="py-2"><StatusBadge status={inv.status} /></td>
-                      <td className="py-2 text-gray-500">{inv.receivingWarehouse === "main" ? "المخزن الرئيسي" : "المحل"}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{inv.receivingWarehouse === "main" ? "المخزن الرئيسي" : "المحل"}</td>
                       <td className="py-2">
                         <div className="flex gap-1">
                           {inv.status !== "paid" && (
@@ -199,7 +199,7 @@ export default function PurchasesPage() {
                             PDF
                           </button>
                           {inv.pdfUrl && (
-                            <a href={inv.pdfUrl} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:underline px-1">
+                            <a href={inv.pdfUrl} target="_blank" rel="noreferrer" className="text-xs text-gray-500 dark:text-slate-500 hover:underline px-1">
                               تحميل
                             </a>
                           )}
@@ -208,7 +208,7 @@ export default function PurchasesPage() {
                     </tr>
                   ))}
                   {!invoices.length && (
-                    <tr><td colSpan={8} className="text-center text-gray-400 py-6">لا توجد فواتير بعد</td></tr>
+                    <tr><td colSpan={8} className="text-center text-gray-400 dark:text-slate-600 py-6">لا توجد فواتير بعد</td></tr>
                   )}
                 </tbody>
               </table>
@@ -228,7 +228,7 @@ export default function PurchasesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-600">
+                  <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                     <th className="pb-2 font-medium">الاسم</th>
                     <th className="pb-2 font-medium">التواصل</th>
                     <th className="pb-2 font-medium">العنوان</th>
@@ -237,10 +237,10 @@ export default function PurchasesPage() {
                 </thead>
                 <tbody>
                   {suppliers.map((sup) => (
-                    <tr key={sup.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={sup.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                       <td className="py-2 font-medium">{sup.name}</td>
-                      <td className="py-2 text-gray-500">{sup.contact}</td>
-                      <td className="py-2 text-gray-500">{sup.address}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{sup.contact}</td>
+                      <td className="py-2 text-gray-500 dark:text-slate-500">{sup.address}</td>
                       <td className="py-2">
                         <div className="flex gap-1">
                           <button onClick={() => { setSelectedSupplier(sup); setTab("statement"); }} className="text-xs text-blue-600 hover:underline px-1">كشف حساب</button>
@@ -251,7 +251,7 @@ export default function PurchasesPage() {
                     </tr>
                   ))}
                   {!suppliers.length && (
-                    <tr><td colSpan={4} className="text-center text-gray-400 py-6">لا يوجد موردون بعد</td></tr>
+                    <tr><td colSpan={4} className="text-center text-gray-400 dark:text-slate-600 py-6">لا يوجد موردون بعد</td></tr>
                   )}
                 </tbody>
               </table>
@@ -263,9 +263,9 @@ export default function PurchasesPage() {
           <div className="space-y-4">
             <div className="flex gap-3 items-end">
               <div className="flex-1 max-w-xs">
-                <label className="text-sm font-medium text-gray-700 block mb-1">اختر مورداً</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 block mb-1">اختر مورداً</label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm"
                   value={selectedSupplier?.id || ""}
                   onChange={(e) => setSelectedSupplier(suppliers.find((s) => s.id === e.target.value) || null)}
                 >
@@ -284,7 +284,7 @@ export default function PurchasesPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100 text-gray-600">
+                      <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                         <th className="pb-2 font-medium">رقم الفاتورة</th>
                         <th className="pb-2 font-medium">التاريخ</th>
                         <th className="pb-2 font-medium">المبلغ</th>
@@ -305,7 +305,7 @@ export default function PurchasesPage() {
                         </tr>
                       ))}
                       {!statementInvoices.length && (
-                        <tr><td colSpan={6} className="text-center text-gray-400 py-4">لا توجد فواتير لهذا المورد</td></tr>
+                        <tr><td colSpan={6} className="text-center text-gray-400 dark:text-slate-600 py-4">لا توجد فواتير لهذا المورد</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -345,7 +345,7 @@ export default function PurchasesPage() {
           {targetInvoice && (
             <div className="bg-amber-50 rounded-lg p-3 text-sm">
               <p className="font-medium">{targetInvoice.supplierName}</p>
-              <p className="text-gray-600">الفاتورة: {targetInvoice.invoiceNumber}</p>
+              <p className="text-gray-600 dark:text-slate-400">الفاتورة: {targetInvoice.invoiceNumber}</p>
               <p className="text-red-600">المتبقي: {formatCurrency(targetInvoice.totalAmount - targetInvoice.paidAmount)}</p>
             </div>
           )}

@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 function formatDateStr(ts: { toDate?: () => Date } | null): string {
   if (!ts) return "";
   const d = ts.toDate ? ts.toDate() : new Date();
-  return d.toLocaleDateString("ar-SY", { year: "numeric", month: "long", day: "numeric" });
+  return d.toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
 }
 
 function buildInvoiceHTML(invoice: Record<string, unknown>, type: "supplier" | "customer"): string {
@@ -65,7 +65,7 @@ function buildInvoiceHTML(invoice: Record<string, unknown>, type: "supplier" | "
 <body>
 <div class="header">
   <div class="company">
-    <h1>🥙 رايا الشام</h1>
+    <h1>🥙 راية الشام</h1>
     <p>مطعم الشاورما السوري الأصيل</p>
     <p>هاتف: +963 XXX XXX XXX</p>
   </div>
@@ -121,8 +121,8 @@ function buildInvoiceHTML(invoice: Record<string, unknown>, type: "supplier" | "
 ${invoice.note ? `<div style="margin-top:20px; padding:12px; background:#f9fafb; border-radius:8px; font-size:13px; color:#666;"><strong>ملاحظة:</strong> ${invoice.note}</div>` : ""}
 
 <div class="footer">
-  <p>شكراً لتعاملكم مع رايا الشام 🥙</p>
-  <p>تم إنشاء هذه الفاتورة إلكترونياً — ${new Date().toLocaleDateString("ar-SY")}</p>
+  <p>شكراً لتعاملكم مع راية الشام 🥙</p>
+  <p>تم إنشاء هذه الفاتورة إلكترونياً — ${new Date().toLocaleDateString("ar-EG")}</p>
 </div>
 </body>
 </html>`;

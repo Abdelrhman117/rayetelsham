@@ -177,11 +177,11 @@ export default function InventoryPage() {
     <AppShell>
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">إدارة المخزون</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">إدارة المخزون</h1>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-gray-200 pb-0">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700 pb-0">
           {[
             { key: "items", label: "الأصناف" },
             { key: "transfer", label: "نقل بضاعة" },
@@ -193,7 +193,7 @@ export default function InventoryPage() {
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tab === t.key
                   ? "border-amber-700 text-amber-700"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               {t.label}
@@ -209,13 +209,13 @@ export default function InventoryPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="pb-2 font-medium text-gray-600">الصنف</th>
-                    <th className="pb-2 font-medium text-gray-600">الوحدة</th>
-                    <th className="pb-2 font-medium text-gray-600">المخزن الرئيسي</th>
-                    <th className="pb-2 font-medium text-gray-600">المحل</th>
-                    <th className="pb-2 font-medium text-gray-600">حد التنبيه</th>
-                    <th className="pb-2 font-medium text-gray-600">الحالة</th>
+                  <tr className="border-b border-gray-100 dark:border-slate-700">
+                    <th className="pb-2 font-medium text-gray-600 dark:text-slate-400">الصنف</th>
+                    <th className="pb-2 font-medium text-gray-600 dark:text-slate-400">الوحدة</th>
+                    <th className="pb-2 font-medium text-gray-600 dark:text-slate-400">المخزن الرئيسي</th>
+                    <th className="pb-2 font-medium text-gray-600 dark:text-slate-400">المحل</th>
+                    <th className="pb-2 font-medium text-gray-600 dark:text-slate-400">حد التنبيه</th>
+                    <th className="pb-2 font-medium text-gray-600 dark:text-slate-400">الحالة</th>
                     <th className="pb-2"></th>
                   </tr>
                 </thead>
@@ -224,12 +224,12 @@ export default function InventoryPage() {
                     const total = item.stockMain + item.stockShop;
                     const isLow = total <= item.lowStockThreshold;
                     return (
-                      <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900">
                         <td className="py-2 font-medium">{item.name}</td>
-                        <td className="py-2 text-gray-500">{item.unit}</td>
+                        <td className="py-2 text-gray-500 dark:text-slate-500">{item.unit}</td>
                         <td className="py-2">{formatNumber(item.stockMain)}</td>
                         <td className="py-2">{formatNumber(item.stockShop)}</td>
-                        <td className="py-2 text-gray-500">{item.lowStockThreshold}</td>
+                        <td className="py-2 text-gray-500 dark:text-slate-500">{item.lowStockThreshold}</td>
                         <td className="py-2">
                           {isLow ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">
@@ -262,7 +262,7 @@ export default function InventoryPage() {
                   })}
                   {!items.length && (
                     <tr>
-                      <td colSpan={7} className="text-center text-gray-400 py-6">
+                      <td colSpan={7} className="text-center text-gray-400 dark:text-slate-600 py-6">
                         لا توجد أصناف بعد. أضف أول صنف.
                       </td>
                     </tr>
@@ -300,12 +300,12 @@ export default function InventoryPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">الأصناف</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">الأصناف</label>
                 <div className="space-y-2">
                   {transferForm.transferItems.map((ti, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
                       <select
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm"
                         value={ti.itemId}
                         onChange={(e) => {
                           const item = items.find((i) => i.id === e.target.value);
@@ -328,7 +328,7 @@ export default function InventoryPage() {
                       <input
                         type="number"
                         min={0}
-                        className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                        className="w-24 rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm"
                         value={ti.quantity}
                         onChange={(e) => {
                           const updated = [...transferForm.transferItems];
@@ -402,7 +402,7 @@ export default function InventoryPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-gray-100 text-gray-600">
+                        <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
                           <th className="pb-2 font-medium">الصنف</th>
                           <th className="pb-2 font-medium">وحدة</th>
                           <th className="pb-2 font-medium">دفتري (رئيسي)</th>
@@ -418,12 +418,12 @@ export default function InventoryPage() {
                           return (
                             <tr key={ci.itemId} className="border-b border-gray-50">
                               <td className="py-1.5 font-medium">{ci.itemName}</td>
-                              <td className="py-1.5 text-gray-500">{ci.unit}</td>
+                              <td className="py-1.5 text-gray-500 dark:text-slate-500">{ci.unit}</td>
                               <td className="py-1.5">{ci.bookMain}</td>
                               <td className="py-1.5">
                                 <input
                                   type="number"
-                                  className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                                  className="w-20 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm"
                                   value={ci.actualMain}
                                   onChange={(e) => {
                                     const updated = [...countForm.countItems];
@@ -436,7 +436,7 @@ export default function InventoryPage() {
                               <td className="py-1.5">
                                 <input
                                   type="number"
-                                  className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                                  className="w-20 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm"
                                   value={ci.actualShop}
                                   onChange={(e) => {
                                     const updated = [...countForm.countItems];
@@ -445,7 +445,7 @@ export default function InventoryPage() {
                                   }}
                                 />
                               </td>
-                              <td className={`py-1.5 font-medium ${diff < 0 ? "text-red-600" : diff > 0 ? "text-green-600" : "text-gray-500"}`}>
+                              <td className={`py-1.5 font-medium ${diff < 0 ? "text-red-600" : diff > 0 ? "text-green-600" : "text-gray-500 dark:text-slate-500"}`}>
                                 {diff > 0 ? "+" : ""}{diff}
                               </td>
                             </tr>
@@ -461,7 +461,7 @@ export default function InventoryPage() {
                   </Button>
                 )}
                 {!countForm.countItems.length && (
-                  <p className="text-gray-400 text-sm">اضغط "تحميل الأصناف الحالية" لبدء الجرد</p>
+                  <p className="text-gray-400 dark:text-slate-600 text-sm">اضغط "تحميل الأصناف الحالية" لبدء الجرد</p>
                 )}
               </div>
             </Card>
@@ -472,7 +472,7 @@ export default function InventoryPage() {
                   {counts.slice(0, 5).map((c: Record<string, unknown>) => (
                     <div key={c.id as string} className="flex items-center justify-between py-2 border-b border-gray-50">
                       <span className="text-sm">{c.date as string} — {c.month as string}</span>
-                      <span className="text-xs text-gray-500">{(c.countItems as unknown[])?.length} صنف</span>
+                      <span className="text-xs text-gray-500 dark:text-slate-500">{(c.countItems as unknown[])?.length} صنف</span>
                     </div>
                   ))}
                 </div>

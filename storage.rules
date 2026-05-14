@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Only the two authorised admins can read/write storage
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email_verified == true &&
+        (request.auth.token.email == 'admin@gazal.com' ||
+         request.auth.token.email == 'admin@ahmed.com');
+    }
+
+    // Invoice HTML/PDF files
+    match /invoices/{invoiceFile} {
+      allow read: if isAdmin();
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024  // max 5 MB
+        && (request.resource.contentType == 'text/html; charset=utf-8'
+            || request.resource.contentType == 'application/pdf'
+            || request.resource.contentType == 'text/html');
+      allow delete: if isAdmin();
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

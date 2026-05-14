@@ -4,7 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import DarkModeToggle from "@/components/ui/DarkModeToggle";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/dashboard", label: "لوحة التحكم", icon: "📊" },
@@ -22,19 +23,23 @@ const navItems = [
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   async function handleLogout() {
     await signOut(auth);
     router.push("/login");
   }
 
+  const displayName = user?.email === "admin@gazal.com" ? "غزال" : user?.email === "admin@ahmed.com" ? "أحمد" : user?.email ?? "";
+
   return (
-    <div className="flex flex-col h-full bg-amber-900 text-white">
-      <div className="p-4 border-b border-amber-700">
+    <div className="flex flex-col h-full bg-amber-900 dark:bg-slate-900 text-white transition-colors">
+      <div className="p-4 border-b border-amber-700 dark:border-slate-700">
         <div className="text-center">
           <div className="text-2xl mb-1">🥙</div>
-          <h1 className="text-lg font-bold">رايا الشام</h1>
-          <p className="text-xs text-amber-300">نظام إدارة المطعم</p>
+          <h1 className="text-lg font-bold">راية الشام</h1>
+          <p className="text-xs text-amber-300 dark:text-slate-400">نظام إدارة المطعم</p>
+          <p className="text-xs text-amber-400 dark:text-slate-500 mt-1 truncate">👤 {displayName}</p>
         </div>
       </div>
       <nav className="flex-1 overflow-y-auto p-2">
@@ -46,8 +51,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm transition-colors",
               pathname === item.href || pathname.startsWith(item.href + "/")
-                ? "bg-amber-700 text-white"
-                : "text-amber-100 hover:bg-amber-800"
+                ? "bg-amber-700 dark:bg-amber-800 text-white"
+                : "text-amber-100 dark:text-slate-300 hover:bg-amber-800 dark:hover:bg-slate-800"
             )}
           >
             <span>{item.icon}</span>
@@ -55,10 +60,14 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           </Link>
         ))}
       </nav>
-      <div className="p-3 border-t border-amber-700">
+      <div className="p-3 border-t border-amber-700 dark:border-slate-700 space-y-1">
+        <div className="flex items-center justify-between px-3 py-1">
+          <span className="text-xs text-amber-300 dark:text-slate-400">المظهر</span>
+          <DarkModeToggle />
+        </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-amber-100 hover:bg-amber-800 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-amber-100 dark:text-slate-300 hover:bg-amber-800 dark:hover:bg-slate-800 transition-colors"
         >
           <span>🚪</span>
           <span>تسجيل الخروج</span>
