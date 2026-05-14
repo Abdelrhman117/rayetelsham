@@ -2,13 +2,11 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/layout/AppShell";
 import Card from "@/components/ui/Card";
-import { getSupplierInvoices, getSalesInvoices } from "@/lib/firestore";
+import { getSupplierInvoices } from "@/lib/firestore";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
-import { SupplierInvoice, SalesInvoice } from "@/types";
+import { SupplierInvoice } from "@/types";
 import { Timestamp } from "firebase/firestore";
-
-type AnyInvoice = (SupplierInvoice & { invoiceType: "supplier" }) | (SalesInvoice & { invoiceType: "customer" });
 
 function tsToString(ts: Timestamp | null | undefined): string {
   if (!ts) return "";
@@ -16,12 +14,7 @@ function tsToString(ts: Timestamp | null | undefined): string {
   return d.toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function buildInvoiceHTML(invoice: AnyInvoice): string {
-  const isSupplier = invoice.invoiceType === "supplier";
-  const party = isSupplier
-    ? `المورد: ${(invoice as SupplierInvoice).supplierName}`
-    : `العميل: ${(invoice as SalesInvoice).customerName}`;
-
+function buildInvoiceHTML(invoice: SupplierInvoice): string {
   const rows = invoice.items
     .map(
       (item) => `
@@ -35,12 +28,12 @@ function buildInvoiceHTML(invoice: AnyInvoice): string {
     )
     .join("");
 
-  const date = tsToString(invoice.date as unknown as Timestamp);
+  const date    = tsToString(invoice.date as unknown as Timestamp);
   const dueDate = tsToString(invoice.dueDate as unknown as Timestamp);
-  const statusLabel = invoice.status === "paid" ? "مدفوع" : invoice.status === "partial" ? "جزئي" : "غير مدفوع";
-  const warehouse = isSupplier
-    ? `<p>المخزن: ${(invoice as SupplierInvoice).receivingWarehouse === "main" ? "المخزن الرئيسي" : "المحل"}</p>`
-    : "";
+  const statusLabel =
+    invoice.status === "paid" ? "مدفوع" :
+    invoice.status === "partial" ? "جزئي" : "غير مدفوع";
+  const warehouse = invoice.receivingWarehouse === "main" ? "المخزن الرئيسي" : "المحل";
 
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -62,11 +55,9 @@ function buildInvoiceHTML(invoice: AnyInvoice): string {
   tr:nth-child(even) td { background: #fafaf9; }
   .total-row td { background: #fef3c7 !important; font-weight: bold; font-size: 15px; border-top: 2px solid #92400e; }
   .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 15px; }
-  .status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-  .status-paid { background: #d1fae5; color: #065f46; }
-  .status-unpaid { background: #fee2e2; color: #991b1b; }
-  .status-partial { background: #fef3c7; color: #92400e; }
-  @media print { button { display: none; } }
+  .status-paid { background: #d1fae5; color: #065f46; display:inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+  .status-unpaid { background: #fee2e2; color: #991b1b; display:inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+  .status-partial { background: #fef3c7; color: #92400e; display:inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -76,30 +67,28 @@ function buildInvoiceHTML(invoice: AnyInvoice): string {
     <p>مطعم الشاورما السوري الأصيل</p>
   </div>
   <div style="text-align:left">
-    <p style="font-size:18px; font-weight:bold; color:#92400e;">${isSupplier ? "فاتورة شراء" : "فاتورة بيع"}</p>
-    <p style="font-size:14px; color:#666;">رقم: ${invoice.invoiceNumber}</p>
-    <p style="font-size:13px; color:#666;">التاريخ: ${date}</p>
+    <p style="font-size:18px;font-weight:bold;color:#92400e;">فاتورة شراء</p>
+    <p style="font-size:14px;color:#666;">رقم: ${invoice.invoiceNumber}</p>
+    <p style="font-size:13px;color:#666;">التاريخ: ${date}</p>
   </div>
 </div>
 
 <div class="invoice-info">
   <div class="info-box">
-    <h3>${isSupplier ? "معلومات المورد" : "معلومات العميل"}</h3>
-    <p>${party}</p>
+    <h3>معلومات المورد</h3>
+    <p>المورد: ${invoice.supplierName}</p>
   </div>
   <div class="info-box">
     <h3>تفاصيل الفاتورة</h3>
     <p>تاريخ الاستحقاق: ${dueDate}</p>
-    <p>الحالة: <span class="status status-${invoice.status}">${statusLabel}</span></p>
-    ${warehouse}
+    <p>الحالة: <span class="status-${invoice.status}">${statusLabel}</span></p>
+    <p>المخزن: ${warehouse}</p>
   </div>
 </div>
 
 <table>
   <thead>
-    <tr>
-      <th>الصنف</th><th>الوحدة</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th>
-    </tr>
+    <tr><th>الصنف</th><th>الوحدة</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
   </thead>
   <tbody>
     ${rows}
@@ -128,138 +117,103 @@ ${invoice.note ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;bo
 </html>`;
 }
 
-function openInvoice(invoice: AnyInvoice) {
+function openInvoice(invoice: SupplierInvoice) {
   const html = buildInvoiceHTML(invoice);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const win = window.open(url, "_blank");
+  const url  = URL.createObjectURL(blob);
+  const win  = window.open(url, "_blank");
   if (win) win.focus();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<AnyInvoice[]>([]);
-  const [tab, setTab] = useState<"all" | "supplier" | "customer">("all");
-  const [search, setSearch] = useState("");
+  const [invoices, setInvoices] = useState<SupplierInvoice[]>([]);
+  const [search,   setSearch]   = useState("");
 
-  useEffect(() => { loadInvoices(); }, []);
-
-  async function loadInvoices() {
-    const [supInvs, salInvs] = await Promise.all([getSupplierInvoices(), getSalesInvoices()]);
-    const combined: AnyInvoice[] = [
-      ...(supInvs as SupplierInvoice[]).map((i) => ({ ...i, invoiceType: "supplier" as const })),
-      ...(salInvs as SalesInvoice[]).map((i) => ({ ...i, invoiceType: "customer" as const })),
-    ].sort((a, b) => {
-      const toMs = (d: unknown) =>
-        d instanceof Timestamp ? d.toDate().getTime() : new Date(d as string).getTime();
-      return toMs(b.date) - toMs(a.date);
-    });
-    setInvoices(combined);
-  }
+  useEffect(() => {
+    getSupplierInvoices().then((data) => setInvoices(data as SupplierInvoice[]));
+  }, []);
 
   const filtered = invoices.filter((inv) => {
-    const matchTab =
-      tab === "all" ||
-      (tab === "supplier" && inv.invoiceType === "supplier") ||
-      (tab === "customer" && inv.invoiceType === "customer");
-    const party = inv.invoiceType === "supplier"
-      ? (inv as SupplierInvoice).supplierName
-      : (inv as SalesInvoice).customerName;
-    const matchSearch =
-      !search ||
+    if (!search) return true;
+    return (
       inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) ||
-      party.toLowerCase().includes(search.toLowerCase());
-    return matchTab && matchSearch;
+      inv.supplierName?.toLowerCase().includes(search.toLowerCase())
+    );
   });
+
+  const totalAmount  = filtered.reduce((s, i) => s + i.totalAmount, 0);
+  const totalPaid    = filtered.reduce((s, i) => s + i.paidAmount, 0);
+  const totalUnpaid  = totalAmount - totalPaid;
 
   return (
     <AppShell>
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">الفواتير</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">فواتير الشراء</h1>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-          <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700 w-full sm:w-auto">
-            {[
-              { key: "all", label: "الكل" },
-              { key: "supplier", label: "فواتير شراء" },
-              { key: "customer", label: "فواتير بيع" },
-            ].map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key as typeof tab)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                  tab === t.key
-                    ? "border-amber-700 text-amber-700 dark:text-amber-400 dark:border-amber-400"
-                    : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 rounded-2xl p-4">
+            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">إجمالي الفواتير</p>
+            <p className="text-xl font-bold text-amber-700 dark:text-amber-300 mt-1">{formatCurrency(totalAmount)}</p>
           </div>
-          <input
-            className="border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm w-full sm:w-64 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
-            placeholder="بحث برقم الفاتورة أو الطرف..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 rounded-2xl p-4">
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">المدفوع</p>
+            <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{formatCurrency(totalPaid)}</p>
+          </div>
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-2xl p-4">
+            <p className="text-xs text-red-600 dark:text-red-400 font-medium">المتبقي</p>
+            <p className="text-xl font-bold text-red-700 dark:text-red-300 mt-1">{formatCurrency(totalUnpaid)}</p>
+          </div>
         </div>
+
+        {/* Search */}
+        <input
+          className="w-full sm:w-72 border border-gray-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-400/50"
+          placeholder="بحث برقم الفاتورة أو المورد..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         <Card title={`الفواتير (${filtered.length})`}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-600 dark:text-slate-400">
-                  <th className="pb-2 font-medium text-right">النوع</th>
-                  <th className="pb-2 font-medium text-right">رقم الفاتورة</th>
-                  <th className="pb-2 font-medium text-right">الطرف</th>
-                  <th className="pb-2 font-medium text-right">التاريخ</th>
-                  <th className="pb-2 font-medium text-right">المبلغ</th>
-                  <th className="pb-2 font-medium text-right">المدفوع</th>
-                  <th className="pb-2 font-medium text-right">الحالة</th>
-                  <th className="pb-2 font-medium text-right">الفاتورة</th>
+                <tr className="border-b border-gray-100 dark:border-slate-700 text-gray-500 dark:text-slate-400">
+                  <th className="pb-3 font-medium text-right">رقم الفاتورة</th>
+                  <th className="pb-3 font-medium text-right">المورد</th>
+                  <th className="pb-3 font-medium text-right">التاريخ</th>
+                  <th className="pb-3 font-medium text-right">المبلغ</th>
+                  <th className="pb-3 font-medium text-right">المدفوع</th>
+                  <th className="pb-3 font-medium text-right">المتبقي</th>
+                  <th className="pb-3 font-medium text-right">الحالة</th>
+                  <th className="pb-3 font-medium text-right">الفاتورة</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((inv) => {
-                  const party =
-                    inv.invoiceType === "supplier"
-                      ? (inv as SupplierInvoice).supplierName
-                      : (inv as SalesInvoice).customerName;
-                  return (
-                    <tr
-                      key={`${inv.invoiceType}-${inv.id}`}
-                      className="border-b border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
-                    >
-                      <td className="py-2">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          inv.invoiceType === "supplier"
-                            ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
-                            : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        }`}>
-                          {inv.invoiceType === "supplier" ? "شراء" : "بيع"}
-                        </span>
-                      </td>
-                      <td className="py-2 font-mono text-xs text-gray-700 dark:text-slate-300">{inv.invoiceNumber}</td>
-                      <td className="py-2 font-medium text-gray-900 dark:text-slate-100">{party}</td>
-                      <td className="py-2 text-gray-500 dark:text-slate-400">{formatDate(inv.date)}</td>
-                      <td className="py-2 font-medium text-amber-700 dark:text-amber-300">{formatCurrency(inv.totalAmount)}</td>
-                      <td className="py-2 text-green-600 dark:text-green-400">{formatCurrency(inv.paidAmount)}</td>
-                      <td className="py-2"><StatusBadge status={inv.status} /></td>
-                      <td className="py-2">
-                        <button
-                          onClick={() => openInvoice(inv)}
-                          className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 px-2 py-1 rounded-md transition-colors"
-                        >
-                          عرض / طباعة
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {filtered.map((inv) => (
+                  <tr key={inv.id} className="border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50/80 dark:hover:bg-slate-700/30 transition-colors">
+                    <td className="py-3 font-mono text-xs text-gray-500 dark:text-slate-400">{inv.invoiceNumber}</td>
+                    <td className="py-3 font-semibold text-gray-900 dark:text-slate-100">{inv.supplierName}</td>
+                    <td className="py-3 text-gray-500 dark:text-slate-400">{formatDate(inv.date)}</td>
+                    <td className="py-3 font-medium text-amber-700 dark:text-amber-300">{formatCurrency(inv.totalAmount)}</td>
+                    <td className="py-3 text-emerald-600 dark:text-emerald-400">{formatCurrency(inv.paidAmount)}</td>
+                    <td className="py-3 text-red-600 dark:text-red-400 font-medium">{formatCurrency(inv.totalAmount - inv.paidAmount)}</td>
+                    <td className="py-3"><StatusBadge status={inv.status} /></td>
+                    <td className="py-3">
+                      <button
+                        onClick={() => openInvoice(inv)}
+                        className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                      >
+                        عرض / طباعة
+                      </button>
+                    </td>
+                  </tr>
+                ))}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={8} className="text-center text-gray-400 dark:text-slate-500 py-8">
+                    <td colSpan={8} className="text-center text-gray-400 dark:text-slate-500 py-10">
+                      <div className="text-3xl mb-2">🧾</div>
                       لا توجد فواتير
                     </td>
                   </tr>
