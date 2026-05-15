@@ -11,16 +11,26 @@ interface InvoiceFormProps {
   parties: { id: string; name: string }[];
   onSubmit: (data: Record<string, unknown>) => Promise<void>;
   onCancel: () => void;
+  initialValues?: {
+    partyId: string;
+    partyName: string;
+    date: string;
+    dueDate: string;
+    receivingWarehouse: "main" | "shop";
+    note: string;
+    items: InvoiceItem[];
+  };
+  submitLabel?: string;
 }
 
-export default function InvoiceForm({ type, parties, onSubmit, onCancel }: InvoiceFormProps) {
-  const [partyId, setPartyId] = useState("");
-  const [partyName, setPartyName] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [dueDate, setDueDate] = useState("");
-  const [receivingWarehouse, setReceivingWarehouse] = useState<"main" | "shop">("main");
-  const [note, setNote] = useState("");
-  const [items, setItems] = useState<InvoiceItem[]>([
+export default function InvoiceForm({ type, parties, onSubmit, onCancel, initialValues, submitLabel }: InvoiceFormProps) {
+  const [partyId, setPartyId] = useState(initialValues?.partyId ?? "");
+  const [partyName, setPartyName] = useState(initialValues?.partyName ?? "");
+  const [date, setDate] = useState(initialValues?.date ?? new Date().toISOString().split("T")[0]);
+  const [dueDate, setDueDate] = useState(initialValues?.dueDate ?? "");
+  const [receivingWarehouse, setReceivingWarehouse] = useState<"main" | "shop">(initialValues?.receivingWarehouse ?? "main");
+  const [note, setNote] = useState(initialValues?.note ?? "");
+  const [items, setItems] = useState<InvoiceItem[]>(initialValues?.items ?? [
     { name: "", unit: "كغ", quantity: 1, unitPrice: 0, total: 0 },
   ]);
   const [loading, setLoading] = useState(false);
@@ -78,7 +88,7 @@ export default function InvoiceForm({ type, parties, onSubmit, onCancel }: Invoi
             {type === "supplier" ? "المورد" : "العميل"}
           </label>
           <select
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
             value={partyId}
             onChange={(e) => {
               setPartyId(e.target.value);
@@ -135,7 +145,7 @@ export default function InvoiceForm({ type, parties, onSubmit, onCancel }: Invoi
                 <tr key={idx} className="border-b border-gray-50">
                   <td className="py-1.5 px-1">
                     <input
-                      className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      className="w-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded px-2 py-1.5 text-sm"
                       value={item.name}
                       onChange={(e) => updateItem(idx, "name", e.target.value)}
                       placeholder="اسم الصنف"
@@ -143,7 +153,7 @@ export default function InvoiceForm({ type, parties, onSubmit, onCancel }: Invoi
                   </td>
                   <td className="py-1.5 px-1">
                     <input
-                      className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      className="w-20 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded px-2 py-1.5 text-sm"
                       value={item.unit}
                       onChange={(e) => updateItem(idx, "unit", e.target.value)}
                     />
@@ -152,7 +162,7 @@ export default function InvoiceForm({ type, parties, onSubmit, onCancel }: Invoi
                     <input
                       type="number"
                       min={0}
-                      className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      className="w-20 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded px-2 py-1.5 text-sm"
                       value={item.quantity}
                       onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))}
                     />
@@ -161,7 +171,7 @@ export default function InvoiceForm({ type, parties, onSubmit, onCancel }: Invoi
                     <input
                       type="number"
                       min={0}
-                      className="w-28 border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      className="w-28 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded px-2 py-1.5 text-sm"
                       value={item.unitPrice}
                       onChange={(e) => updateItem(idx, "unitPrice", Number(e.target.value))}
                     />
@@ -201,7 +211,7 @@ export default function InvoiceForm({ type, parties, onSubmit, onCancel }: Invoi
       <div className="flex justify-end gap-2 pt-2">
         <Button variant="secondary" onClick={onCancel}>إلغاء</Button>
         <Button onClick={handleSubmit} loading={loading} disabled={!partyId}>
-          حفظ الفاتورة
+          {submitLabel ?? "حفظ الفاتورة"}
         </Button>
       </div>
     </div>

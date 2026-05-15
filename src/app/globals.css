@@ -3,12 +3,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
+  --background: #f8f9fa;
+  --foreground: #111827;
 }
 
 .dark {
-  --background: #0f172a;
+  --background: #020617;
   --foreground: #f1f5f9;
 }
 
@@ -22,7 +22,6 @@ body {
   box-sizing: border-box;
 }
 
-/* RTL table support */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -32,19 +31,17 @@ th, td {
   text-align: right;
 }
 
-/* Global dark-mode native select fix */
 .dark select {
-  background-color: #1e293b;
+  background-color: #0f172a;
   color: #f1f5f9;
-  border-color: #475569;
+  border-color: #334155;
 }
 .dark select option {
-  background-color: #1e293b;
+  background-color: #0f172a;
   color: #f1f5f9;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d4a017; border-radius: 3px; }
-.dark ::-webkit-scrollbar-thumb { background: #475569; }
+::-webkit-scrollbar-thumb { background: #d4a017; border-radius: 4px; }
+.dark ::-webkit-scrollbar-thumb { background: #334155; }

@@ -207,3 +207,27 @@ export interface InventoryCount {
   note: string;
   createdAt: Timestamp;
 }
+
+export interface SupplierReturnItem {
+  name: string;
+  unit: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface SupplierReturn {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  date: string;
+  returnType: "goods" | "credit";
+  items: SupplierReturnItem[];
+  creditAmount: number;
+  totalAmount: number;
+  warehouse: "main" | "shop";
+  note: string;
+  createdAt: Timestamp;
+}

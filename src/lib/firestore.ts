@@ -448,3 +448,71 @@ export async function getAdvancePayments(advanceId?: string) {
   const snap = await getDocs(query(col("advancePayments"), ...constraints));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
+
+// Supplier Returns
+export async function getSupplierReturns(invoiceId?: string) {
+  const constraints: QueryConstraint[] = [orderBy("date", "desc")];
+  if (invoiceId) constraints.unshift(where("invoiceId", "==", invoiceId));
+  const snap = await getDocs(query(col("supplierReturns"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addSupplierReturn(data: {
+  supplierId: string;
+  supplierName: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  date: string;
+  returnType: "goods" | "credit";
+  items: { name: string; unit: string; quantity: number; unitPrice: number; total: number }[];
+  creditAmount: number;
+  totalAmount: number;
+  warehouse: "main" | "shop";
+  note: string;
+}) {
+  const batch = writeBatch(db);
+
+  // 1. Create return record
+  const returnRef = doc(col("supplierReturns"));
+  batch.set(returnRef, { ...data, createdAt: Timestamp.now() });
+
+  // 2. Update the original invoice
+  const invRef = docRef("supplierInvoices", data.invoiceId);
+  const invSnap = await getDoc(invRef);
+  if (invSnap.exists()) {
+    const inv = invSnap.data();
+    if (data.returnType === "goods") {
+      // Reduce totalAmount by return value
+      const newTotal = Math.max(0, (inv.totalAmount || 0) - data.totalAmount);
+      const newStatus = inv.paidAmount >= newTotal ? "paid" : inv.paidAmount > 0 ? "partial" : "unpaid";
+      batch.update(invRef, { totalAmount: newTotal, status: newStatus, updatedAt: Timestamp.now() });
+
+      // Deduct stock from warehouse
+      const itemsSnap = await getDocs(col("items"));
+      const stockField = data.warehouse === "main" ? "stockMain" : "stockShop";
+      for (const retItem of data.items) {
+        const existing = itemsSnap.docs.find(
+          (d) => d.data().name.toLowerCase() === retItem.name.toLowerCase()
+        );
+        if (existing) {
+          batch.update(existing.ref, {
+            [stockField]: increment(-retItem.quantity),
+            updatedAt: Timestamp.now(),
+          });
+        }
+      }
+    } else {
+      // credit: increase paidAmount
+      const newPaid = (inv.paidAmount || 0) + data.creditAmount;
+      const newStatus = newPaid >= inv.totalAmount ? "paid" : newPaid > 0 ? "partial" : "unpaid";
+      batch.update(invRef, { paidAmount: newPaid, status: newStatus, updatedAt: Timestamp.now() });
+    }
+  }
+
+  await batch.commit();
+  return returnRef.id;
+}
+
+export async function deleteSupplierInvoice(id: string) {
+  return deleteDoc(docRef("supplierInvoices", id));
+}

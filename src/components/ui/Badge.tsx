@@ -8,11 +8,11 @@ interface BadgeProps {
 
 export default function Badge({ children, variant = "neutral", className }: BadgeProps) {
   const variants = {
-    success: "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300",
-    warning: "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300",
-    danger: "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300",
-    info: "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300",
-    neutral: "bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-200",
+    success: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    warning: "bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-400 ring-1 ring-yellow-200 dark:ring-yellow-800",
+    danger:  "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    info:    "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800",
+    neutral: "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 ring-1 ring-gray-200 dark:ring-slate-700",
   };
 
   return (
@@ -24,9 +24,9 @@ export default function Badge({ children, variant = "neutral", className }: Badg
 
 export function StatusBadge({ status }: { status: "paid" | "unpaid" | "partial" }) {
   const map: Record<string, { label: string; variant: "success" | "danger" | "warning" }> = {
-    paid: { label: "مدفوع", variant: "success" },
-    unpaid: { label: "غير مدفوع", variant: "danger" },
-    partial: { label: "جزئي", variant: "warning" },
+    paid:    { label: "مدفوع",      variant: "success" },
+    unpaid:  { label: "غير مدفوع", variant: "danger"  },
+    partial: { label: "جزئي",      variant: "warning"  },
   };
   const { label, variant } = map[status] || { label: status, variant: "neutral" as const };
   return <Badge variant={variant}>{label}</Badge>;

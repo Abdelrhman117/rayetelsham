@@ -8,17 +8,22 @@ import { cn } from "@/lib/utils";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
+import {
+  LayoutDashboard, Package, ShoppingCart, Store,
+  Wallet, Users, BarChart3, FileText, Settings, LogOut,
+  ChefHat,
+} from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard",   label: "لوحة التحكم",       icon: "📊" },
-  { href: "/inventory",   label: "المخزون",             icon: "📦" },
-  { href: "/purchases",   label: "المشتريات والموردون", icon: "🛒" },
-  { href: "/daily-sales", label: "مبيعات يومية",        icon: "🏪" },
-  { href: "/expenses",    label: "المصروفات",           icon: "💸" },
-  { href: "/salaries",    label: "الرواتب",             icon: "👷" },
-  { href: "/reports",     label: "التقارير",            icon: "📈" },
-  { href: "/invoices",    label: "الفواتير",            icon: "🧾" },
-  { href: "/settings",    label: "الإعدادات",           icon: "⚙️" },
+  { href: "/dashboard",   label: "لوحة التحكم",       icon: LayoutDashboard },
+  { href: "/inventory",   label: "المخزون",             icon: Package },
+  { href: "/purchases",   label: "المشتريات والموردون", icon: ShoppingCart },
+  { href: "/daily-sales", label: "مبيعات يومية",        icon: Store },
+  { href: "/expenses",    label: "المصروفات",           icon: Wallet },
+  { href: "/salaries",    label: "الرواتب",             icon: Users },
+  { href: "/reports",     label: "التقارير",            icon: BarChart3 },
+  { href: "/invoices",    label: "الفواتير",            icon: FileText },
+  { href: "/settings",    label: "الإعدادات",           icon: Settings },
 ];
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -47,31 +52,39 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     user?.email ?? "";
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-white transition-colors">
-
+    <div className="flex flex-col h-full bg-slate-950 text-white">
       {/* Header */}
-      <div className="px-4 py-5 border-b border-white/10">
-        <div className="text-center">
+      <div className="px-5 py-6 border-b border-white/8">
+        <div className="flex items-center gap-3">
           {logoDataUrl ? (
-            <img src={logoDataUrl} className="w-12 h-12 object-contain rounded-xl mx-auto mb-3" alt="logo" />
+            <img src={logoDataUrl} className="w-10 h-10 object-contain rounded-xl shrink-0" alt="logo" />
           ) : (
-            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-black/30">
-              <span className="text-3xl">🥙</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg shrink-0">
+              <ChefHat className="w-5 h-5 text-white" />
             </div>
           )}
-          <h1 className="text-lg font-bold tracking-wide">راية الشام</h1>
-          <p className="text-xs text-amber-300/60 dark:text-slate-500 mt-0.5">نظام إدارة المطعم</p>
-          <div className="mt-3 inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-            <span className="text-xs text-amber-100 dark:text-slate-300">{displayName}</span>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-white leading-tight">راية الشام</h1>
+            <p className="text-xs text-slate-500 mt-0.5 truncate">نظام إدارة المطعم</p>
+          </div>
+        </div>
+        {/* User badge */}
+        <div className="mt-4 flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2">
+          <div className="w-7 h-7 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+            <span className="text-yellow-400 text-xs font-bold">{displayName.slice(0, 1)}</span>
+          </div>
+          <span className="text-xs text-slate-300 font-medium truncate">{displayName}</span>
+          <div className="mr-auto flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          const Icon = item.icon;
           return (
             <Link
               key={item.href}
@@ -80,31 +93,29 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group",
                 active
-                  ? "bg-white/15 text-white shadow-sm"
-                  : "text-amber-100/70 dark:text-slate-400 hover:bg-white/8 hover:text-white dark:hover:text-white"
+                  ? "bg-yellow-500/15 text-yellow-400"
+                  : "text-slate-400 hover:bg-white/5 hover:text-slate-100"
               )}
             >
-              <span className="text-base w-5 text-center shrink-0">{item.icon}</span>
+              <Icon className={cn("w-4 h-4 shrink-0 transition-colors", active ? "text-yellow-400" : "text-slate-500 group-hover:text-slate-300")} />
               <span className="flex-1">{item.label}</span>
-              {active && (
-                <span className="w-1.5 h-5 rounded-full bg-yellow-400 shrink-0"></span>
-              )}
+              {active && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0"></span>}
             </Link>
           );
         })}
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-white/10 space-y-1">
-        <div className="flex items-center justify-between px-3 py-1.5">
-          <span className="text-xs text-amber-300/50 dark:text-slate-500">المظهر</span>
+      <div className="px-3 pb-4 pt-3 border-t border-white/8 space-y-1">
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl">
+          <span className="text-xs text-slate-500">المظهر</span>
           <DarkModeToggle />
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-100/60 dark:text-slate-400 hover:bg-red-500/15 hover:text-red-300 transition-all duration-150"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150"
         >
-          <span className="w-5 text-center">🚪</span>
+          <LogOut className="w-4 h-4 shrink-0" />
           <span>تسجيل الخروج</span>
         </button>
       </div>

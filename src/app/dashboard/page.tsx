@@ -9,6 +9,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from "recharts";
+import {
+  TrendingUp, TrendingDown, Wallet, Users,
+  ShoppingCart, AlertTriangle, CheckCircle, ChefHat,
+} from "lucide-react";
 
 interface DaySummary { date: string; sales: number; expenses: number; }
 
@@ -79,30 +83,32 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-
-        {/* Greeting */}
-        <div className="bg-gradient-to-l from-amber-600 to-amber-800 dark:from-amber-800 dark:to-amber-950 rounded-2xl p-5 text-white shadow-lg shadow-amber-900/20">
-          <div className="flex items-center justify-between">
+        {/* Greeting banner */}
+        <div className="relative overflow-hidden bg-slate-900 dark:bg-slate-900 rounded-2xl p-6 border border-slate-800">
+          <div className="absolute inset-0 bg-gradient-to-l from-yellow-500/10 via-transparent to-transparent pointer-events-none" />
+          <div className="flex items-center justify-between relative">
             <div>
-              <p className="text-amber-200 text-sm font-medium">{getGreeting()} 👋</p>
-              <h1 className="text-2xl font-bold mt-1">لوحة التحكم</h1>
-              <p className="text-amber-300/80 text-sm mt-1">{today}</p>
+              <p className="text-slate-400 text-sm font-medium">{getGreeting()} 👋</p>
+              <h1 className="text-2xl font-bold mt-1 text-white">لوحة التحكم</h1>
+              <p className="text-slate-500 text-sm mt-1">{today}</p>
             </div>
-            <div className="text-5xl opacity-80">🥙</div>
+            <div className="w-16 h-16 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+              <ChefHat className="w-8 h-8 text-yellow-400" />
+            </div>
           </div>
         </div>
 
         {/* Today stats */}
         <div>
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-slate-400 mb-3 px-1">ملخص اليوم</h2>
+          <h2 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-1">ملخص اليوم</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard label="مبيعات اليوم"   value={formatCurrency(todaySales)}    icon="💰" color="green" />
-            <StatCard label="مصروفات اليوم"  value={formatCurrency(todayExpenses)} icon="💸" color="red"   />
-            <StatCard label="رواتب اليوم"    value={formatCurrency(todaySalaries)} icon="👷" color="amber" />
+            <StatCard label="مبيعات اليوم"   value={formatCurrency(todaySales)}    icon={<TrendingUp className="w-5 h-5" />}    color="green" />
+            <StatCard label="مصروفات اليوم"  value={formatCurrency(todayExpenses)} icon={<Wallet className="w-5 h-5" />}         color="red"   />
+            <StatCard label="رواتب اليوم"    value={formatCurrency(todaySalaries)} icon={<Users className="w-5 h-5" />}          color="amber" />
             <StatCard
               label="صافي التدفق"
               value={formatCurrency(netCashFlow)}
-              icon={netCashFlow >= 0 ? "📈" : "📉"}
+              icon={netCashFlow >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
               color={netCashFlow >= 0 ? "green" : "red"}
             />
           </div>
@@ -110,19 +116,19 @@ export default function DashboardPage() {
 
         {/* Alerts */}
         <div>
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-slate-400 mb-3 px-1">تنبيهات</h2>
+          <h2 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 px-1">تنبيهات</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <StatCard
               label="مستحق للموردين"
               value={formatCurrency(unpaidSupplier)}
-              icon="🛒"
+              icon={<ShoppingCart className="w-5 h-5" />}
               color="red"
               sub="إجمالي الفواتير غير المسددة"
             />
             <StatCard
               label="أصناف منخفضة المخزون"
               value={String(lowStockCount)}
-              icon="⚠️"
+              icon={lowStockCount > 0 ? <AlertTriangle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
               color={lowStockCount > 0 ? "red" : "green"}
               sub={lowStockCount > 0 ? "تحتاج إعادة تخزين" : "المخزون في وضع جيد"}
             />
@@ -130,26 +136,25 @@ export default function DashboardPage() {
         </div>
 
         {/* Chart */}
-        <div className="bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/60 p-5">
-          <h2 className="font-semibold text-gray-800 dark:text-slate-100 mb-5">المبيعات والمصروفات — آخر 7 أيام</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 p-5">
+          <h2 className="font-semibold text-gray-900 dark:text-slate-100 text-sm mb-5">المبيعات والمصروفات — آخر 7 أيام</h2>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={4}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-slate-700" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-slate-800" vertical={false} />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={55}
                 tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} />
               <Tooltip
                 formatter={(value: unknown) => formatCurrency(value as number)}
                 labelStyle={{ direction: "rtl", fontWeight: "bold" }}
-                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", backgroundColor: "#1e293b", color: "#f1f5f9" }}
               />
               <Legend formatter={(v) => (v === "sales" ? "المبيعات" : "المصروفات")} iconType="circle" />
-              <Bar dataKey="sales"    name="sales"    fill="#f59e0b" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="sales"    name="sales"    fill="#eab308" radius={[6, 6, 0, 0]} />
               <Bar dataKey="expenses" name="expenses" fill="#f87171" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-
       </div>
     </AppShell>
   );
