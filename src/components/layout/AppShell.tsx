@@ -7,7 +7,7 @@ import { auth } from "@/lib/firebase";
 import Sidebar from "./Sidebar";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { Toaster } from "sonner";
-import { toast } from "sonner";
+import { Menu, ChefHat, XCircle } from "lucide-react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
@@ -16,10 +16,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-amber-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="text-center">
-          <div className="text-4xl mb-3">🥙</div>
-          <p className="text-amber-800 dark:text-amber-300 font-medium">جاري التحميل...</p>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-xl shadow-amber-900/40">
+            <ChefHat className="w-8 h-8 text-white" />
+          </div>
+          <div className="flex items-center gap-2 justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+          </div>
         </div>
       </div>
     );
@@ -30,19 +36,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // Block non-admin users even if somehow authenticated
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50 dark:bg-slate-900 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
         <div className="text-center max-w-sm">
-          <div className="text-5xl mb-4">🚫</div>
-          <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">غير مصرح بالدخول</h2>
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-4">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/10 flex items-center justify-center">
+            <XCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">غير مصرح بالدخول</h2>
+          <p className="text-slate-400 text-sm mb-6">
             هذا الحساب ({user.email}) ليس لديه صلاحية الوصول لهذا النظام.
           </p>
           <button
             onClick={async () => { await signOut(auth); router.push("/login"); }}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700"
+            className="bg-red-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-red-700 transition-colors"
           >
             تسجيل الخروج
           </button>
@@ -54,7 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-slate-950 overflow-hidden transition-colors">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-64 flex-shrink-0">
+      <div className="hidden md:flex w-60 flex-shrink-0">
         <div className="w-full">
           <Sidebar />
         </div>
@@ -63,11 +70,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
-          <div
-            className="fixed inset-0 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="relative w-64 z-50">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <div className="relative w-60 z-50">
             <Sidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </div>
@@ -76,15 +80,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-gradient-to-l from-amber-950 to-amber-900 dark:bg-slate-900 text-white transition-colors">
-          <button onClick={() => setSidebarOpen(true)} className="p-1">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-950 text-white border-b border-white/8">
+          <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+            <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <span>🥙</span>
-            <span className="font-bold">راية الشام</span>
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center">
+              <ChefHat className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-sm">راية الشام</span>
           </div>
           <DarkModeToggle />
         </header>

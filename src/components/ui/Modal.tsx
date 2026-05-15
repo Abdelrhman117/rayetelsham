@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 
 interface ModalProps {
   open: boolean;
@@ -30,20 +31,21 @@ export default function Modal({ open, onClose, title, children, size = "md" }: M
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/50 dark:bg-black/70" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div
         className={cn(
-          "relative bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-h-[90vh] flex flex-col transition-colors",
+          "relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-h-[90vh] flex flex-col border border-gray-100 dark:border-slate-800",
           sizes[size]
         )}
       >
         {title && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
-            <h3 className="font-semibold text-gray-900 dark:text-slate-100 text-lg">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100 text-base">{title}</h3>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
