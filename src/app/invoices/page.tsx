@@ -63,7 +63,7 @@ function buildInvoiceHTML(invoice: SupplierInvoice): string {
 <body>
 <div class="header">
   <div class="company">
-    <h1>🥙 راية الشام</h1>
+    <h1>راية الشام</h1>
     <p>مطعم الشاورما السوري الأصيل</p>
   </div>
   <div style="text-align:left">
@@ -110,7 +110,7 @@ function buildInvoiceHTML(invoice: SupplierInvoice): string {
 ${invoice.note ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;border-radius:8px;font-size:13px;color:#666;"><strong>ملاحظة:</strong> ${invoice.note}</div>` : ""}
 
 <div class="footer">
-  <p>شكراً لتعاملكم مع راية الشام 🥙</p>
+  <p>شكراً لتعاملكم مع راية الشام</p>
   <p>تم إنشاء هذه الفاتورة إلكترونياً — ${new Date().toLocaleDateString("ar-EG")}</p>
 </div>
 </body>
@@ -119,11 +119,18 @@ ${invoice.note ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;bo
 
 function openInvoice(invoice: SupplierInvoice) {
   const html = buildInvoiceHTML(invoice);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url  = URL.createObjectURL(blob);
-  const win  = window.open(url, "_blank");
-  if (win) win.focus();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;";
+  document.body.appendChild(iframe);
+  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!doc) return;
+  doc.open();
+  doc.write(html);
+  doc.close();
+  setTimeout(() => {
+    iframe.contentWindow?.print();
+    setTimeout(() => document.body.removeChild(iframe), 2000);
+  }, 400);
 }
 
 export default function InvoicesPage() {

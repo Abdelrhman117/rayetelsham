@@ -1,25 +1,46 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { getDoc, doc } from "firebase/firestore";
 import Sidebar from "./Sidebar";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { Toaster } from "sonner";
 import { Menu, ChefHat, XCircle } from "lucide-react";
 
+function AppLogo({ logoUrl, size = "md" }: { logoUrl: string | null; size?: "sm" | "md" }) {
+  const dims = size === "sm" ? "w-7 h-7" : "w-16 h-16";
+  const iconSize = size === "sm" ? "w-4 h-4" : "w-8 h-8";
+  if (logoUrl) {
+    return <img src={logoUrl} className={`${dims} object-contain rounded-xl`} alt="logo" />;
+  }
+  return (
+    <div className={`${dims} rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg`}>
+      <ChefHat className={`${iconSize} text-white`} />
+    </div>
+  );
+}
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
+      if (snap.exists()) setLogoUrl(snap.data().logoDataUrl || null);
+    });
+  }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-xl shadow-amber-900/40">
-            <ChefHat className="w-8 h-8 text-white" />
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            <AppLogo logoUrl={logoUrl} size="md" />
           </div>
           <div className="flex items-center gap-2 justify-center">
             <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -63,7 +84,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-60 flex-shrink-0">
         <div className="w-full">
-          <Sidebar />
+          <Sidebar logoUrl={logoUrl} />
         </div>
       </div>
 
@@ -72,7 +93,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <div className="relative w-60 z-50">
-            <Sidebar onClose={() => setSidebarOpen(false)} />
+            <Sidebar onClose={() => setSidebarOpen(false)} logoUrl={logoUrl} />
           </div>
         </div>
       )}
@@ -85,9 +106,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center">
-              <ChefHat className="w-4 h-4 text-white" />
-            </div>
+            <AppLogo logoUrl={logoUrl} size="sm" />
             <span className="font-bold text-sm">راية الشام</span>
           </div>
           <DarkModeToggle />
