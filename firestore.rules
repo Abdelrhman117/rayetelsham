@@ -77,7 +77,16 @@ service cloud.firestore {
         && request.resource.data.totalAmount is number
         && request.resource.data.totalAmount > 0;
       allow update: if isAdmin();
-      allow delete: if false; // invoices should not be deleted
+      allow delete: if isAdmin();
+    }
+
+    match /supplierReturns/{returnId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['supplierId', 'invoiceId', 'returnType', 'totalAmount'])
+        && request.resource.data.totalAmount is number
+        && request.resource.data.totalAmount >= 0;
+      allow update, delete: if false;
     }
 
     match /supplierPayments/{paymentId} {
