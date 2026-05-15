@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot, getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import AppShell from "@/components/layout/AppShell";
 import { StatCard } from "@/components/ui/Card";
@@ -14,6 +14,7 @@ import {
   ShoppingCart, AlertTriangle, CheckCircle, ChefHat,
 } from "lucide-react";
 
+
 interface DaySummary { date: string; sales: number; expenses: number; }
 
 function getGreeting() {
@@ -25,12 +26,19 @@ function getGreeting() {
 
 export default function DashboardPage() {
   const today = todayString();
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [todaySales,    setTodaySales]    = useState(0);
   const [todayExpenses, setTodayExpenses] = useState(0);
   const [todaySalaries, setTodaySalaries] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [unpaidSupplier,setUnpaidSupplier]= useState(0);
   const [chartData,     setChartData]     = useState<DaySummary[]>([]);
+
+  useEffect(() => {
+    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
+      if (snap.exists()) setLogoUrl(snap.data().logoDataUrl || null);
+    });
+  }, []);
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -92,8 +100,11 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold mt-1 text-white">لوحة التحكم</h1>
               <p className="text-slate-500 text-sm mt-1">{today}</p>
             </div>
-            <div className="w-16 h-16 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
-              <ChefHat className="w-8 h-8 text-yellow-400" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-yellow-500/10 border border-yellow-500/20">
+              {logoUrl
+                ? <img src={logoUrl} className="w-full h-full object-contain" alt="logo" />
+                : <ChefHat className="w-8 h-8 text-yellow-400" />
+              }
             </div>
           </div>
         </div>

@@ -2,12 +2,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { getDoc, doc } from "firebase/firestore";
+import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Package, ShoppingCart, Store,
   Wallet, Users, BarChart3, FileText, Settings, LogOut,
@@ -26,20 +24,10 @@ const navItems = [
   { href: "/settings",    label: "الإعدادات",           icon: Settings },
 ];
 
-export default function Sidebar({ onClose }: { onClose?: () => void }) {
+export default function Sidebar({ onClose, logoUrl }: { onClose?: () => void; logoUrl?: string | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setLogoDataUrl(data.logoDataUrl || null);
-      }
-    });
-  }, []);
 
   async function handleLogout() {
     await signOut(auth);
@@ -56,8 +44,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Header */}
       <div className="px-5 py-6 border-b border-white/8">
         <div className="flex items-center gap-3">
-          {logoDataUrl ? (
-            <img src={logoDataUrl} className="w-10 h-10 object-contain rounded-xl shrink-0" alt="logo" />
+          {logoUrl ? (
+            <img src={logoUrl} className="w-10 h-10 object-contain rounded-xl shrink-0" alt="logo" />
           ) : (
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg shrink-0">
               <ChefHat className="w-5 h-5 text-white" />

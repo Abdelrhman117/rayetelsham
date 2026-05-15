@@ -230,6 +230,10 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /bonuses/{id} {
+      allow read, write: if isAdmin();
+    }
+
     // ======================================================
     // APP SETTINGS & MISC
     // ======================================================

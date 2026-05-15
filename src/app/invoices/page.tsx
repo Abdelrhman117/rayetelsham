@@ -63,7 +63,7 @@ function buildInvoiceHTML(invoice: SupplierInvoice): string {
 <body>
 <div class="header">
   <div class="company">
-    <h1>🥙 راية الشام</h1>
+    <h1>راية الشام</h1>
     <p>مطعم الشاورما السوري الأصيل</p>
   </div>
   <div style="text-align:left">
@@ -110,7 +110,7 @@ function buildInvoiceHTML(invoice: SupplierInvoice): string {
 ${invoice.note ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;border-radius:8px;font-size:13px;color:#666;"><strong>ملاحظة:</strong> ${invoice.note}</div>` : ""}
 
 <div class="footer">
-  <p>شكراً لتعاملكم مع راية الشام 🥙</p>
+  <p>شكراً لتعاملكم مع راية الشام</p>
   <p>تم إنشاء هذه الفاتورة إلكترونياً — ${new Date().toLocaleDateString("ar-EG")}</p>
 </div>
 </body>
@@ -119,11 +119,18 @@ ${invoice.note ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;bo
 
 function openInvoice(invoice: SupplierInvoice) {
   const html = buildInvoiceHTML(invoice);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url  = URL.createObjectURL(blob);
-  const win  = window.open(url, "_blank");
-  if (win) win.focus();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;";
+  document.body.appendChild(iframe);
+  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!doc) return;
+  doc.open();
+  doc.write(html);
+  doc.close();
+  setTimeout(() => {
+    iframe.contentWindow?.print();
+    setTimeout(() => document.body.removeChild(iframe), 2000);
+  }, 400);
 }
 
 export default function InvoicesPage() {
@@ -213,8 +220,10 @@ export default function InvoicesPage() {
                 {!filtered.length && (
                   <tr>
                     <td colSpan={8} className="text-center text-gray-400 dark:text-slate-500 py-10">
-                      <div className="text-3xl mb-2">🧾</div>
-                      لا توجد فواتير
+                      <div className="flex flex-col items-center gap-2">
+                        <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span className="text-sm">لا توجد فواتير</span>
+                      </div>
                     </td>
                   </tr>
                 )}
