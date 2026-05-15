@@ -191,6 +191,17 @@ export interface AdvancePayment {
   createdAt: Timestamp;
 }
 
+export interface Bonus {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  amount: number;
+  reason: string;
+  note: string;
+  createdAt: Timestamp;
+}
+
 export interface InventoryCount {
   id: string;
   date: string;

@@ -335,11 +335,17 @@ export async function getSalaryRecords(date?: string) {
 export async function setSalaryRecord(
   date: string,
   employeeId: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  worked?: boolean
 ) {
   const existing = await getDocs(
     query(col("salaries"), where("date", "==", date), where("employeeId", "==", employeeId))
   );
+  if (worked === false) {
+    // Remove record if employee didn't work
+    if (!existing.empty) return deleteDoc(existing.docs[0].ref);
+    return;
+  }
   if (!existing.empty) {
     return updateDoc(existing.docs[0].ref, data);
   }
@@ -515,4 +521,23 @@ export async function addSupplierReturn(data: {
 
 export async function deleteSupplierInvoice(id: string) {
   return deleteDoc(docRef("supplierInvoices", id));
+}
+
+// =====================================================
+// BONUSES (مكافآت)
+// =====================================================
+
+export async function getBonuses(employeeId?: string) {
+  const constraints: QueryConstraint[] = [orderBy("date", "desc")];
+  if (employeeId) constraints.unshift(where("employeeId", "==", employeeId));
+  const snap = await getDocs(query(col("bonuses"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addBonus(data: Record<string, unknown>) {
+  return addDoc(col("bonuses"), { ...data, createdAt: Timestamp.now() });
+}
+
+export async function deleteBonus(id: string) {
+  return deleteDoc(docRef("bonuses", id));
 }
