@@ -26,7 +26,7 @@ function AppLogo({ size = "md" }: { size?: "sm" | "md" }) {
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const logoUrl = useLogoUrl();
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, isCashier } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -53,6 +53,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAdmin) {
+    // Cashier accounts belong in /cashier, not the admin shell
+    if (isCashier) {
+      router.replace("/cashier");
+      return null;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
         <div className="text-center max-w-sm">
