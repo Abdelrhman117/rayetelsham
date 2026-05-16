@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isCashierEmail } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import Button from "@/components/ui/Button";
@@ -18,15 +18,17 @@ export default function LoginPage() {
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && user) router.replace("/dashboard");
+    if (!authLoading && user) {
+      router.replace(isCashierEmail(user.email) ? "/cashier" : "/dashboard");
+    }
   }, [user, authLoading, router]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      router.push(isCashierEmail(cred.user.email) ? "/cashier" : "/dashboard");
     } catch {
       toast.error("بيانات الدخول غير صحيحة. يرجى المحاولة مجدداً.");
     } finally {
