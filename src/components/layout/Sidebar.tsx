@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Package, ShoppingCart, Store,
   Wallet, Users, BarChart3, FileText, Settings, LogOut,
-  ChefHat,
+  ChefHat, UtensilsCrossed,
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +21,7 @@ const navItems = [
   { href: "/salaries",    label: "الرواتب",             icon: Users },
   { href: "/reports",     label: "التقارير",            icon: BarChart3 },
   { href: "/invoices",    label: "الفواتير",            icon: FileText },
+  { href: "/admin/menu",  label: "قائمة الطعام",        icon: UtensilsCrossed },
   { href: "/settings",    label: "الإعدادات",           icon: Settings },
 ];
 

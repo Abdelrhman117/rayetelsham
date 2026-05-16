@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isCashierEmail } from "@/hooks/useAuth";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChefHat } from "lucide-react";
@@ -19,7 +19,13 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading) {
-      router.replace(user ? "/dashboard" : "/login");
+      if (!user) {
+        router.replace("/login");
+      } else if (isCashierEmail(user.email)) {
+        router.replace("/cashier");
+      } else {
+        router.replace("/dashboard");
+      }
     }
   }, [user, loading, router]);
 

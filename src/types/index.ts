@@ -242,3 +242,54 @@ export interface SupplierReturn {
   note: string;
   createdAt: Timestamp;
 }
+
+// =====================================================
+// MENU & CASHIER (كاشير)
+// =====================================================
+
+export interface RecipeItem {
+  itemId: string;
+  itemName: string;
+  quantityGrams: number;
+}
+
+export interface MenuCategory {
+  id: string;
+  name: string;
+  order: number;
+  icon: string;
+  createdAt: Timestamp;
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  categoryId: string;
+  categoryName: string;
+  price: number;
+  available: boolean;
+  imageUrl: string;
+  recipe: RecipeItem[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface OrderItem {
+  menuItemId: string;
+  name: string;
+  qty: number;
+  price: number;
+  total: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: number;
+  items: OrderItem[];
+  total: number;
+  notes: string;
+  paymentMethod: "cash" | "card" | "wallet";
+  cashierEmail: string;
+  date: string;
+  createdAt: Timestamp;
+}

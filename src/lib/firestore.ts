@@ -15,6 +15,7 @@ import {
   increment,
   setDoc,
   limit,
+  runTransaction,
   QueryConstraint,
 } from "firebase/firestore";
 import { db } from "./firebase";
@@ -576,3 +577,145 @@ export async function addBonus(data: Record<string, unknown>) {
 export async function deleteBonus(id: string) {
   return deleteDoc(docRef("bonuses", id));
 }
+
+// =====================================================
+// MENU CATEGORIES (أقسام المنيو)
+// =====================================================
+
+export async function getMenuCategories() {
+  const snap = await getDocs(query(col("menuCategories"), orderBy("order")));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addMenuCategory(data: Record<string, unknown>) {
+  return addDoc(col("menuCategories"), { ...data, createdAt: Timestamp.now() });
+}
+
+export async function updateMenuCategory(id: string, data: Record<string, unknown>) {
+  return updateDoc(docRef("menuCategories", id), data);
+}
+
+export async function deleteMenuCategory(id: string) {
+  return deleteDoc(docRef("menuCategories", id));
+}
+
+// =====================================================
+// MENU ITEMS (أصناف المنيو)
+// =====================================================
+
+export async function getMenuItems(categoryId?: string) {
+  const constraints: QueryConstraint[] = [orderBy("name")];
+  if (categoryId) constraints.unshift(where("categoryId", "==", categoryId));
+  const snap = await getDocs(query(col("menuItems"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addMenuItem(data: Record<string, unknown>) {
+  return addDoc(col("menuItems"), { ...data, createdAt: Timestamp.now(), updatedAt: Timestamp.now() });
+}
+
+export async function updateMenuItem(id: string, data: Record<string, unknown>) {
+  return updateDoc(docRef("menuItems", id), { ...data, updatedAt: Timestamp.now() });
+}
+
+export async function deleteMenuItem(id: string) {
+  return deleteDoc(docRef("menuItems", id));
+}
+
+// =====================================================
+// ORDERS (الطلبات)
+// =====================================================
+
+export async function createOrder(data: {
+  items: { menuItemId: string; name: string; qty: number; price: number; total: number }[];
+  total: number;
+  notes: string;
+  paymentMethod: "cash" | "card" | "wallet";
+  cashierEmail: string;
+}): Promise<{ id: string; orderNumber: number }> {
+  const today = new Date().toISOString().slice(0, 10);
+  const counterRef = docRef("appSettings", "orderCounter");
+
+  // Step 1: Atomic order number increment
+  let orderNumber = 1;
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(counterRef);
+    if (snap.exists()) {
+      const d = snap.data();
+      orderNumber = d.lastDate === today ? (d.dailyCounter || 0) + 1 : 1;
+    }
+    tx.set(counterRef, { dailyCounter: orderNumber, lastDate: today }, { merge: true });
+  });
+
+  // Step 2: Collect all menu item refs to read inside the stock transaction
+  const menuItemIds = [...new Set(data.items.map((i) => i.menuItemId))];
+
+  // Step 3: Stock deduction + order creation (single transaction)
+  const orderRef = doc(col("orders"));
+  await runTransaction(db, async (tx) => {
+    // Read all menu items
+    const menuSnaps = await Promise.all(menuItemIds.map((id) => tx.get(docRef("menuItems", id))));
+    const menuMap = new Map(menuSnaps.map((s) => [s.id, s]));
+
+    // Build deduction map: itemId → total grams to deduct
+    const deductions = new Map<string, { ref: ReturnType<typeof docRef>; grams: number; name: string }>();
+    for (const oi of data.items) {
+      const menuSnap = menuMap.get(oi.menuItemId);
+      if (!menuSnap || !menuSnap.exists()) throw new Error(`الصنف "${oi.name}" غير موجود في المنيو`);
+      const recipe = (menuSnap.data().recipe || []) as { itemId: string; itemName: string; quantityGrams: number }[];
+      for (const r of recipe) {
+        const existing = deductions.get(r.itemId);
+        const totalGrams = r.quantityGrams * oi.qty;
+        if (existing) {
+          existing.grams += totalGrams;
+        } else {
+          deductions.set(r.itemId, { ref: docRef("items", r.itemId), grams: totalGrams, name: r.itemName });
+        }
+      }
+    }
+
+    // Read all affected stock items
+    const stockEntries = Array.from(deductions.entries());
+    const stockSnaps = await Promise.all(stockEntries.map(([, v]) => tx.get(v.ref)));
+
+    // Validate stock availability
+    for (let i = 0; i < stockEntries.length; i++) {
+      const [, entry] = stockEntries[i];
+      const snap = stockSnaps[i];
+      if (!snap.exists()) continue;
+      const available = (snap.data().stockShop as number) || 0;
+      if (available < entry.grams) {
+        throw new Error(
+          `المخزون غير كافٍ للصنف "${entry.name}" — المتوفر: ${available}ج، المطلوب: ${entry.grams}ج`
+        );
+      }
+    }
+
+    // Deduct stock
+    for (let i = 0; i < stockEntries.length; i++) {
+      const snap = stockSnaps[i];
+      if (!snap.exists()) continue;
+      tx.update(snap.ref, { stockShop: increment(-stockEntries[i][1].grams), updatedAt: Timestamp.now() });
+    }
+
+    // Create the order document
+    tx.set(orderRef, {
+      ...data,
+      orderNumber,
+      date: today,
+      createdAt: Timestamp.now(),
+    });
+  });
+
+  return { id: orderRef.id, orderNumber };
+}
+
+export async function getOrders(date?: string) {
+  const constraints: QueryConstraint[] = [orderBy("createdAt", "desc")];
+  if (date) constraints.unshift(where("date", "==", date));
+  const snap = await getDocs(query(col("orders"), ...constraints));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+// Unused export kept for tree-shaking — onSnapshot used on client directly
+export { onSnapshot };

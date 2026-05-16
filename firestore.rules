@@ -15,6 +15,17 @@ service cloud.firestore {
          request.auth.token.email == 'admin@ahmed.com');
     }
 
+    // Cashier account
+    function isCashier() {
+      return request.auth != null &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email == 'cashier@gazal.com';
+    }
+
+    function isAdminOrCashier() {
+      return isAdmin() || isCashier();
+    }
+
     // Require all write fields to have valid timestamps
     function hasTimestamp(field) {
       return request.resource.data[field] is timestamp;
@@ -246,8 +257,8 @@ service cloud.firestore {
     // ======================================================
 
     match /appSettings/{docId} {
-      allow read: if isAdmin();
-      allow create, update: if isAdmin();
+      allow read: if isAdminOrCashier();
+      allow create, update: if isAdmin() || (isCashier() && docId == 'orderCounter');
       allow delete: if false;
     }
 
@@ -255,6 +266,46 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update: if isAdmin();
       allow delete: if false;
+    }
+
+    // ======================================================
+    // MENU CATEGORIES & ITEMS (قائمة الطعام)
+    // ======================================================
+
+    match /menuCategories/{categoryId} {
+      allow read: if isAdminOrCashier();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['name', 'order', 'icon'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /menuItems/{itemId} {
+      allow read: if isAdminOrCashier();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['name', 'categoryId', 'price', 'available'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.price is number
+        && request.resource.data.price >= 0;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ======================================================
+    // ORDERS (الطلبات)
+    // ======================================================
+
+    match /orders/{orderId} {
+      allow read: if isAdminOrCashier();
+      allow create: if isCashier()
+        && request.resource.data.keys().hasAll(['items', 'total', 'paymentMethod', 'cashierEmail', 'date', 'orderNumber'])
+        && request.resource.data.total is number
+        && request.resource.data.total >= 0
+        && request.resource.data.cashierEmail == request.auth.token.email;
+      allow update, delete: if isAdmin();
     }
 
     // Catch-all: deny everything else
