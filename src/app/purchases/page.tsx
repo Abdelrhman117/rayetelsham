@@ -78,9 +78,13 @@ export default function PurchasesPage() {
 
   async function handleDeleteSupplier(id: string) {
     if (!confirm("هل أنت متأكد من حذف هذا المورد؟")) return;
-    await deleteSupplier(id);
-    toast.success("تم الحذف");
-    loadData();
+    try {
+      await deleteSupplier(id);
+      toast.success("تم الحذف");
+      loadData();
+    } catch {
+      toast.error("حدث خطأ أثناء الحذف");
+    }
   }
 
   async function handleCreateInvoice(data: Record<string, unknown>) {
@@ -326,7 +330,10 @@ export default function PurchasesPage() {
                     ))}
                     {!returns.length && (
                       <tr><td colSpan={6} className="text-center text-gray-400 dark:text-slate-500 py-10">
-                        <div className="text-3xl mb-2">↩️</div>لا توجد مرتجعات
+                        <div className="flex flex-col items-center gap-2">
+                          <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                          <span className="text-sm">لا توجد مرتجعات</span>
+                        </div>
                       </td></tr>
                     )}
                   </tbody>

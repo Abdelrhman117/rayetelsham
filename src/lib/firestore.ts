@@ -23,12 +23,19 @@ import { db } from "./firebase";
 export const col = (name: string) => collection(db, name);
 export const docRef = (colName: string, id: string) => doc(db, colName, id);
 
-// Generate invoice number
+// Generate invoice number (with uniqueness retry)
 export async function generateInvoiceNumber(prefix: string): Promise<string> {
   const year = new Date().getFullYear();
   const month = String(new Date().getMonth() + 1).padStart(2, "0");
-  const rand = Math.floor(Math.random() * 9000) + 1000;
-  return `${prefix}-${year}${month}-${rand}`;
+  const colName = prefix === "SUP" ? "supplierInvoices" : "salesInvoices";
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const rand = Math.floor(Math.random() * 9000) + 1000;
+    const candidate = `${prefix}-${year}${month}-${rand}`;
+    const snap = await getDocs(query(col(colName), where("invoiceNumber", "==", candidate), limit(1)));
+    if (snap.empty) return candidate;
+  }
+  return `${prefix}-${year}${month}-${Date.now()}`;
 }
 
 // Items
@@ -56,13 +63,26 @@ export async function transferStock(transfer: {
   items: { itemId: string; itemName: string; quantity: number }[];
   note: string;
 }) {
-  const batch = writeBatch(db);
+  const fromField = transfer.fromWarehouse === "main" ? "stockMain" : "stockShop";
+  const toField   = transfer.toWarehouse   === "main" ? "stockMain" : "stockShop";
 
+  // Validate all stock levels before committing
+  const snaps = await Promise.all(transfer.items.map((i) => getDoc(docRef("items", i.itemId))));
+  for (let i = 0; i < transfer.items.length; i++) {
+    const item = transfer.items[i];
+    const snap = snaps[i];
+    if (!snap.exists()) throw new Error(`الصنف "${item.itemName}" غير موجود`);
+    const available = (snap.data()[fromField] as number) || 0;
+    if (available < item.quantity) {
+      throw new Error(
+        `المخزون غير كافٍ للصنف "${item.itemName}" — المتوفر: ${available}، المطلوب: ${item.quantity}`
+      );
+    }
+  }
+
+  const batch = writeBatch(db);
   for (const item of transfer.items) {
-    const itemDocRef = docRef("items", item.itemId);
-    const fromField = transfer.fromWarehouse === "main" ? "stockMain" : "stockShop";
-    const toField = transfer.toWarehouse === "main" ? "stockMain" : "stockShop";
-    batch.update(itemDocRef, {
+    batch.update(docRef("items", item.itemId), {
       [fromField]: increment(-item.quantity),
       [toField]: increment(item.quantity),
       updatedAt: Timestamp.now(),
@@ -70,11 +90,7 @@ export async function transferStock(transfer: {
   }
 
   const transferRef = doc(col("transfers"));
-  batch.set(transferRef, {
-    ...transfer,
-    date: Timestamp.now(),
-    createdAt: Timestamp.now(),
-  });
+  batch.set(transferRef, { ...transfer, date: Timestamp.now(), createdAt: Timestamp.now() });
 
   await batch.commit();
   return transferRef.id;
@@ -168,16 +184,18 @@ export async function addSupplierPayment(data: {
   date: Timestamp;
   note: string;
 }) {
+  // Fetch all invoices in parallel (avoid N+1 reads)
+  const invSnaps = await Promise.all(
+    data.invoiceIds.map((id) => getDoc(docRef("supplierInvoices", id)))
+  );
+
   const batch = writeBatch(db);
   const payRef = doc(col("supplierPayments"));
   batch.set(payRef, { ...data, createdAt: Timestamp.now() });
 
-  // Update invoices paidAmount
   let remaining = data.amount;
-  for (const invId of data.invoiceIds) {
+  for (const invSnap of invSnaps) {
     if (remaining <= 0) break;
-    const invRef = docRef("supplierInvoices", invId);
-    const invSnap = await getDoc(invRef);
     if (!invSnap.exists()) continue;
     const inv = invSnap.data();
     const due = inv.totalAmount - inv.paidAmount;
@@ -185,7 +203,7 @@ export async function addSupplierPayment(data: {
     remaining -= payment;
     const newPaid = inv.paidAmount + payment;
     const newStatus = newPaid >= inv.totalAmount ? "paid" : newPaid > 0 ? "partial" : "unpaid";
-    batch.update(invRef, { paidAmount: newPaid, status: newStatus, updatedAt: Timestamp.now() });
+    batch.update(invSnap.ref, { paidAmount: newPaid, status: newStatus, updatedAt: Timestamp.now() });
   }
 
   await batch.commit();
@@ -420,7 +438,8 @@ export async function repayAdvance(advanceId: string, paymentAmount: number, dat
   if (!advSnap.exists()) throw new Error("Advance not found");
 
   const adv = advSnap.data();
-  const newRepaid = (adv.repaidAmount || 0) + paymentAmount;
+  // Round to avoid floating-point issues (e.g. 100.0000001 >= 100)
+  const newRepaid = Math.round(((adv.repaidAmount || 0) + paymentAmount) * 100) / 100;
   const newStatus = newRepaid >= adv.amount ? "repaid" : "partial";
 
   const batch = writeBatch(db);
@@ -488,14 +507,30 @@ export async function addSupplierReturn(data: {
   if (invSnap.exists()) {
     const inv = invSnap.data();
     if (data.returnType === "goods") {
+      const itemsSnap = await getDocs(col("items"));
+      const stockField = data.warehouse === "main" ? "stockMain" : "stockShop";
+
+      // Validate stock before deducting
+      for (const retItem of data.items) {
+        const existing = itemsSnap.docs.find(
+          (d) => d.data().name.toLowerCase() === retItem.name.toLowerCase()
+        );
+        if (existing) {
+          const available = (existing.data()[stockField] as number) || 0;
+          if (available < retItem.quantity) {
+            throw new Error(
+              `المخزون غير كافٍ للصنف "${retItem.name}" — المتوفر: ${available}، المطلوب: ${retItem.quantity}`
+            );
+          }
+        }
+      }
+
       // Reduce totalAmount by return value
       const newTotal = Math.max(0, (inv.totalAmount || 0) - data.totalAmount);
       const newStatus = inv.paidAmount >= newTotal ? "paid" : inv.paidAmount > 0 ? "partial" : "unpaid";
       batch.update(invRef, { totalAmount: newTotal, status: newStatus, updatedAt: Timestamp.now() });
 
       // Deduct stock from warehouse
-      const itemsSnap = await getDocs(col("items"));
-      const stockField = data.warehouse === "main" ? "stockMain" : "stockShop";
       for (const retItem of data.items) {
         const existing = itemsSnap.docs.find(
           (d) => d.data().name.toLowerCase() === retItem.name.toLowerCase()

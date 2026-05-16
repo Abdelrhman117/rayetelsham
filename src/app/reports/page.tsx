@@ -4,7 +4,7 @@ import AppShell from "@/components/layout/AppShell";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { getDailySales, getExpenses, getSalaryRecords, getSupplierInvoices } from "@/lib/firestore";
+import { getDailySales, getExpenses, getSalaryRecords, getSupplierInvoices, getSalesInvoices } from "@/lib/firestore";
 import { formatCurrency } from "@/lib/utils";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 interface PLReport {
   month: string;
   shopSales: number;
+  salesInvoicesRevenue: number;
   totalRevenue: number;
   purchases: number;
   openingStock: number;
@@ -46,24 +47,35 @@ export default function ReportsPage() {
     setLoading(true);
     try {
       const startDate = `${month}-01`;
-      const endDate = `${month}-31`;
+      // Calculate the actual last day of the month
+      const [yr, mo] = month.split("-").map(Number);
+      const lastDay = new Date(yr, mo, 0).getDate();
+      const endDate = `${month}-${String(lastDay).padStart(2, "0")}`;
 
-      const [dailySales, supplierInvoices, expenses, salaryRecs] = await Promise.all([
+      const [dailySales, supplierInvoices, expenses, salaryRecs, salesInvoices] = await Promise.all([
         getDailySales(startDate, endDate),
         getSupplierInvoices(),
         getExpenses(startDate, endDate),
         getSalaryRecords(),
+        getSalesInvoices(),
       ]);
 
       const shopSales = (dailySales as Record<string, unknown>[]).reduce((s, d) => s + ((d.totalSales as number) || 0), 0);
+
+      // Sales invoices revenue (B2B / credit sales)
+      const monthSalesInvoices = (salesInvoices as Record<string, unknown>[]).filter((inv) => {
+        const d = inv.date as { toDate: () => Date };
+        return d.toDate().toISOString().slice(0, 7) === month;
+      });
+      const salesInvoicesRevenue = monthSalesInvoices.reduce((s, inv) => s + ((inv.totalAmount as number) || 0), 0);
+
+      const totalRevenue = shopSales + salesInvoicesRevenue;
 
       const monthPurchases = (supplierInvoices as Record<string, unknown>[]).filter((inv) => {
         const d = inv.date as { toDate: () => Date };
         return d.toDate().toISOString().slice(0, 7) === month;
       });
       const purchases = monthPurchases.reduce((s, inv) => s + ((inv.totalAmount as number) || 0), 0);
-
-      const totalRevenue = shopSales;
 
       // COGS = (Opening Stock + Purchases) - Closing Stock
       const openingStock = openingStockValue;
@@ -83,6 +95,7 @@ export default function ReportsPage() {
       setReport({
         month,
         shopSales,
+        salesInvoicesRevenue,
         totalRevenue,
         purchases,
         openingStock,
@@ -104,7 +117,8 @@ export default function ReportsPage() {
 
   async function loadExpenseReport() {
     const startDate = expMonth + "-01";
-    const endDate = expMonth + "-31";
+    const [ey, em] = expMonth.split("-").map(Number);
+    const endDate = `${expMonth}-${String(new Date(ey, em, 0).getDate()).padStart(2, "0")}`;
     const data = await getExpenses(startDate, endDate);
     const byCategory: Record<string, number> = {};
     for (const exp of data as Record<string, unknown>[]) {
@@ -116,7 +130,8 @@ export default function ReportsPage() {
 
   async function loadSalesReport() {
     const startDate = salesMonth + "-01";
-    const endDate = salesMonth + "-31";
+    const [sy, sm] = salesMonth.split("-").map(Number);
+    const endDate = `${salesMonth}-${String(new Date(sy, sm, 0).getDate()).padStart(2, "0")}`;
     const daily = await getDailySales(startDate, endDate);
     const byDate: Record<string, number> = {};
     for (const d of daily as Record<string, unknown>[]) {
@@ -180,7 +195,8 @@ export default function ReportsPage() {
               <Card title={`قائمة الأرباح والخسائر — ${report.month}`}>
                 <div className="space-y-1">
                   <Section title="الإيرادات" color="green">
-                    <Row label="مبيعات المحل (نقدية/يومية)" value={report.shopSales} />
+                    <Row label="مبيعات يومية (نقدي/بطاقة/محفظة)" value={report.shopSales} />
+                    <Row label="فواتير بيع (آجل/عملاء)" value={report.salesInvoicesRevenue} />
                     <Row label="إجمالي الإيرادات" value={report.totalRevenue} bold />
                   </Section>
 

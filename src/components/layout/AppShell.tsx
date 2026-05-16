@@ -1,16 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { getDoc, doc } from "firebase/firestore";
+import { auth } from "@/lib/firebase";
+import { LogoProvider, useLogoUrl } from "@/contexts/LogoContext";
 import Sidebar from "./Sidebar";
 import DarkModeToggle from "@/components/ui/DarkModeToggle";
 import { Toaster } from "sonner";
 import { Menu, ChefHat, XCircle } from "lucide-react";
 
-function AppLogo({ logoUrl, size = "md" }: { logoUrl: string | null; size?: "sm" | "md" }) {
+function AppLogo({ size = "md" }: { size?: "sm" | "md" }) {
+  const logoUrl = useLogoUrl();
   const dims = size === "sm" ? "w-7 h-7" : "w-16 h-16";
   const iconSize = size === "sm" ? "w-4 h-4" : "w-8 h-8";
   if (logoUrl) {
@@ -23,24 +24,18 @@ function AppLogo({ logoUrl, size = "md" }: { logoUrl: string | null; size?: "sm"
   );
 }
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+function AppShellInner({ children }: { children: React.ReactNode }) {
+  const logoUrl = useLogoUrl();
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
-      if (snap.exists()) setLogoUrl(snap.data().logoDataUrl || null);
-    });
-  }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <AppLogo logoUrl={logoUrl} size="md" />
+            <AppLogo size="md" />
           </div>
           <div className="flex items-center gap-2 justify-center">
             <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -106,7 +101,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <AppLogo logoUrl={logoUrl} size="sm" />
+            <AppLogo size="sm" />
             <span className="font-bold text-sm">راية الشام</span>
           </div>
           <DarkModeToggle />
@@ -119,5 +114,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <Toaster position="top-center" richColors dir="rtl" theme="system" />
     </div>
+  );
+}
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <LogoProvider>
+      <AppShellInner>{children}</AppShellInner>
+    </LogoProvider>
   );
 }

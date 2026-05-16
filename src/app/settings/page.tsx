@@ -14,9 +14,10 @@ import {
 } from "@/lib/firestore";
 import { Employee } from "@/types";
 import { toast } from "sonner";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, storage } from "@/lib/firebase";
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { setDoc, getDoc, doc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 export default function SettingsPage() {
   const [tab, setTab] = useState<"employees" | "logo" | "account">("employees");
@@ -34,7 +35,8 @@ export default function SettingsPage() {
     loadData();
     getDoc(doc(db, "appSettings", "branding")).then((snap) => {
       if (snap.exists()) {
-        setLogoDataUrl(snap.data().logoDataUrl || null);
+        const d = snap.data();
+        setLogoDataUrl(d.logoUrl || d.logoDataUrl || null);
       }
     });
   }, []);
@@ -83,9 +85,13 @@ export default function SettingsPage() {
 
   async function handleDeleteEmployee(id: string) {
     if (!confirm("هل أنت متأكد من حذف هذا الموظف؟")) return;
-    await deleteEmployee(id);
-    toast.success("تم الحذف");
-    loadData();
+    try {
+      await deleteEmployee(id);
+      toast.success("تم الحذف");
+      loadData();
+    } catch {
+      toast.error("حدث خطأ أثناء الحذف");
+    }
   }
 
   async function handleChangePassword() {
@@ -108,23 +114,42 @@ export default function SettingsPage() {
     }
   }
 
-  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const result = ev.target?.result as string;
-      await setDoc(doc(db, "appSettings", "branding"), { logoDataUrl: result });
-      setLogoDataUrl(result);
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("حجم الصورة يجب أن يكون أقل من 2MB");
+      return;
+    }
+    setLoading(true);
+    try {
+      const logoRef = ref(storage, "branding/logo");
+      await uploadBytes(logoRef, file);
+      const url = await getDownloadURL(logoRef);
+      await setDoc(doc(db, "appSettings", "branding"), { logoUrl: url, logoDataUrl: "" });
+      setLogoDataUrl(url);
       toast.success("تم رفع الشعار");
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      toast.error("فشل رفع الشعار — تحقق من إعدادات Firebase Storage");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleDeleteLogo() {
-    await setDoc(doc(db, "appSettings", "branding"), { logoDataUrl: "" });
-    setLogoDataUrl(null);
-    toast.success("تم حذف الشعار");
+    setLoading(true);
+    try {
+      try {
+        await deleteObject(ref(storage, "branding/logo"));
+      } catch { /* لا يهم إذا لم يكن موجوداً في Storage */ }
+      await setDoc(doc(db, "appSettings", "branding"), { logoUrl: "", logoDataUrl: "" });
+      setLogoDataUrl(null);
+      toast.success("تم حذف الشعار");
+    } catch {
+      toast.error("حدث خطأ أثناء الحذف");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const ROLES = ["طباخ", "كاشير", "نادل", "مساعد مطبخ", "مدير", "سائق", "أمن", "نظافة", "أخرى"];
@@ -243,7 +268,7 @@ export default function SettingsPage() {
                   onChange={handleLogoUpload}
                   className="block w-full text-sm text-gray-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100 dark:file:bg-yellow-950/30 dark:file:text-yellow-400"
                 />
-                <p className="text-xs text-gray-400 dark:text-slate-500">يُفضل صورة مربعة بخلفية شفافة (PNG)</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500">يُفضل صورة مربعة بخلفية شفافة (PNG) — الحد الأقصى 2MB</p>
               </div>
             </div>
           </Card>

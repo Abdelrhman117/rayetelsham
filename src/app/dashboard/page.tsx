@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, onSnapshot, getDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import AppShell from "@/components/layout/AppShell";
 import { StatCard } from "@/components/ui/Card";
 import { formatCurrency, todayString } from "@/lib/utils";
+import { useLogoUrl } from "@/contexts/LogoContext";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
@@ -26,19 +27,13 @@ function getGreeting() {
 
 export default function DashboardPage() {
   const today = todayString();
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const logoUrl = useLogoUrl();
   const [todaySales,    setTodaySales]    = useState(0);
   const [todayExpenses, setTodayExpenses] = useState(0);
   const [todaySalaries, setTodaySalaries] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [unpaidSupplier,setUnpaidSupplier]= useState(0);
   const [chartData,     setChartData]     = useState<DaySummary[]>([]);
-
-  useEffect(() => {
-    getDoc(doc(db, "appSettings", "branding")).then((snap) => {
-      if (snap.exists()) setLogoUrl(snap.data().logoDataUrl || null);
-    });
-  }, []);
 
   useEffect(() => {
     const unsub = onSnapshot(

@@ -231,7 +231,14 @@ service cloud.firestore {
     }
 
     match /bonuses/{id} {
-      allow read, write: if isAdmin();
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll(['employeeId', 'employeeName', 'date', 'amount', 'reason'])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0
+        && request.resource.data.date is string;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // ======================================================
