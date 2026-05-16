@@ -7,10 +7,8 @@ service cloud.firestore {
     // HELPER FUNCTIONS
     // ======================================================
 
-    // Only the two authorised admin accounts can access anything
     function isAdmin() {
       return request.auth != null &&
-        request.auth.token.email_verified == true &&
         (request.auth.token.email == 'admin@gazal.com' ||
          request.auth.token.email == 'admin@ahmed.com');
     }
@@ -18,7 +16,6 @@ service cloud.firestore {
     // Cashier account
     function isCashier() {
       return request.auth != null &&
-        request.auth.token.email_verified == true &&
         request.auth.token.email == 'cashier@gazal.com';
     }
 
